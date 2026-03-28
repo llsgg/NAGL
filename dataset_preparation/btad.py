@@ -5,9 +5,9 @@ import json
 class BtadSolver(object):
     CLSNAMES = ['01', '02', '03']
 
-    def __init__(self, root='data/mvtec'):
+    def __init__(self, root='data/mvtec', meta_output=None):
         self.root = root
-        self.meta_path = f'{root}/meta.json'
+        self.meta_path = f'{meta_output}/meta.json' if meta_output else f'{root}/meta.json'
 
     def run(self):
         info = dict(train={}, test={})
@@ -39,10 +39,14 @@ class BtadSolver(object):
                             else:
                                 normal_samples = normal_samples + 1
                 info[phase][cls_name] = cls_info
+        os.makedirs(os.path.dirname(self.meta_path), exist_ok=True)
         with open(self.meta_path, 'w') as f:
             f.write(json.dumps(info, indent=4) + "\n")
         print('normal_samples', normal_samples, 'anomaly_samples', anomaly_samples)
 
 if __name__ == '__main__':
-    runner = BtadSolver(root='/path/to/dataset/btad')
+    runner = BtadSolver(
+        root='/path/to/dataset/btad',
+        meta_output='../dataset/meta_json/btad'
+    )
     runner.run()

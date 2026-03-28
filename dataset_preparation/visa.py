@@ -10,9 +10,9 @@ class VisASolver(object):
         'pcb4', 'pipe_fryum',
     ]
 
-    def __init__(self, root='data/visa'):
+    def __init__(self, root='data/visa', meta_output=None):
         self.root = root
-        self.meta_path = f'{root}/meta.json'
+        self.meta_path = f'{meta_output}/meta.json' if meta_output else f'{root}/meta.json'
         self.phases = ['train', 'test']
         self.csv_data = pd.read_csv(f'{root}/split_csv/1cls.csv', header=0)
 
@@ -44,11 +44,15 @@ class VisASolver(object):
                         else:
                             normal_samples = normal_samples + 1
                 info[phase][cls_name] = cls_info
+        os.makedirs(os.path.dirname(self.meta_path), exist_ok=True)
         with open(self.meta_path, 'w') as f:
             f.write(json.dumps(info, indent=4) + "\n")
         print('normal_samples', normal_samples, 'anomaly_samples', anomaly_samples)
 
 
 if __name__ == '__main__':
-    runner = VisASolver(root='/path/to/dataset/visa')
+    runner = VisASolver(
+        root='/data2/zhangheyao/PromptAD-master/data/visa',
+        meta_output='../dataset/meta_json/visa'
+    )
     runner.run()

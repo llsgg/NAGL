@@ -14,6 +14,7 @@ import numpy as np
 class FSDataset(Dataset):
     def __init__(self,
                  data_root:str ='/data/datasets', 
+                 meta_root:str = None,
                  data_mode:str = 'mvtec_visa',
                  data_name_json:str ='meta.json',
                  fold:int =0,
@@ -23,6 +24,7 @@ class FSDataset(Dataset):
                  choice=500):
         self.split = 'val' if split in ['eval', 'test'] else 'train'
         self.data_root = data_root
+        self.meta_root = meta_root if meta_root else data_root
         data = ['mvtec', 'visa'] if data_mode == 'mvtec_visa' else ['Real-IAD/realiad_1024_unzip']
         # data = ['mvtec', 'visa'] if data_mode == 'mvtec_visa' else ['realiad']
         self.data_mode = data_mode
@@ -45,7 +47,8 @@ class FSDataset(Dataset):
         self.all_product = []
         for d in data:
             data_path = os.path.join(self.data_root, d)
-            with open(os.path.join(data_path, self.data_name_json)) as f:
+            meta_path = os.path.join(self.meta_root, d)
+            with open(os.path.join(meta_path, self.data_name_json)) as f:
                 # data_info.update(json.load(f)['test'])
                 data_info = json.load(f)
 

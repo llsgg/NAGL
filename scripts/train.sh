@@ -22,7 +22,8 @@ for n in "${n_shot[@]}"; do
 
     # Run the training command
     CUDA_VISIBLE_DEVICES=$gpu torchrun --nproc_per_node=1 --master_port=$port train.py \
-      --data_root /path/to/dataset \
+      --data_root /data2/zhangheyao/PromptAD-master/data \
+      --meta_root ./dataset/meta_json \
       --fold "$fold" \
       --epoch 20 \
       --batch_size 8 \

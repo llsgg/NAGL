@@ -11,7 +11,7 @@ if [ "$3" == "mvtec" ]; then
         --num_seeds 3 \
         --eval_segm \
         --tag default \
-        --data_root /path/to/dataset/mvtec
+        --data_root /data2/zhangheyao/PromptAD-master/data/mvtec
 elif [ "$3" == "visa" ]; then
     CUDA_VISIBLE_DEVICES=$1 python test.py \
         --save_path $2 \
@@ -23,7 +23,7 @@ elif [ "$3" == "visa" ]; then
         --num_seeds 3 \
         --eval_segm \
         --tag default \
-        --data_root /path/to/dataset/visa
+        --data_root /data2/zhangheyao/PromptAD-master/data/visa
 elif [ "$3" == "btad" ]; then
     CUDA_VISIBLE_DEVICES=$1 python test.py \
         --save_path $2 \
@@ -35,7 +35,7 @@ elif [ "$3" == "btad" ]; then
         --num_seeds 3 \
         --eval_segm \
         --tag default \
-        --data_root /path/to/dataset/btad
+        --data_root /data2/zhangheyao/PromptAD-master/data/btad
 elif [ "$3" == "brats" ]; then
     CUDA_VISIBLE_DEVICES=$1 python test.py \
         --save_path $2 \
@@ -47,5 +47,5 @@ elif [ "$3" == "brats" ]; then
         --num_seeds 3 \
         --eval_segm \
         --tag default \
-        --data_root /path/to/dataset/brats
+        --data_root /data2/zhangheyao/PromptAD-master/data/brats
 fi

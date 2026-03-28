@@ -63,6 +63,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser("NAGL", add_help=True)
 
     parser.add_argument("--data_root", type=str, default="./path/to/dataset/mvtec", help="train dataset path")
+    parser.add_argument("--meta_root", type=str, default="./dataset/meta_json", help="path to meta.json files")
     # parser.add_argument("--data_mode", type=str, default='realiad', choices=['realiad', 'mvtec_visa'], help="train dataset mode")
     parser.add_argument("--data_mode", type=str, default='mvtec_visa', choices=['realiad', 'mvtec_visa'], help="train dataset mode")
     parser.add_argument("--fold", type=int, default=0, help="fold") # 0: val on former (mvtec), training on latter (visa), 1: val on latter (visa), training on former (mvtec)
@@ -143,6 +144,7 @@ if __name__ == '__main__':
 
     # Create dataset and dataloader
     train_data = FSDataset(data_root=args.data_root,  
+                           meta_root=args.meta_root,
                            data_mode=args.data_mode,
                            fold=args.fold, 
                            split='train', 
@@ -157,6 +159,7 @@ if __name__ == '__main__':
                                   sampler=train_sampler)
     
     val_data = FSDataset(data_root=args.data_root,
+                           meta_root=args.meta_root,
                            data_mode=args.data_mode,
                            fold=args.fold, 
                            split='eval', 
