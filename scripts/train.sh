@@ -24,6 +24,7 @@ for n in "${n_shot[@]}"; do
     CUDA_VISIBLE_DEVICES=$gpu torchrun --nproc_per_node=1 --master_port=$port train.py \
       --data_root /data2/zhangheyao/PromptAD-master/data \
       --meta_root ./dataset/meta_json \
+      --dinov2_local_dir /data2/zhangheyao/AAA/NAGL/NAGL/dinov2 \
       --fold "$fold" \
       --epoch 20 \
       --batch_size 8 \

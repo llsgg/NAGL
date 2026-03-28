@@ -7,7 +7,7 @@ fold=$4
 test_dataset=$5
 
 if [ "$mode" == "train" ]; then
-    sh scripts/train.sh $gpu $save_dir $fold
+    bash scripts/train.sh $gpu $save_dir $fold
 fi
 
-sh scripts/test.sh $gpu $save_dir $test_dataset
+bash scripts/test.sh $gpu $save_dir $test_dataset

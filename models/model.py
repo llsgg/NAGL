@@ -1,3 +1,4 @@
+import os
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -16,9 +17,21 @@ class NAGL(nn.Module):
         super(NAGL, self).__init__()
         self.backbone_name = args.backbone_name
 
-        self.vision_encoder = torch.hub.load('facebookresearch/dinov2', 
-                                            args.backbone_name, 
-                                            )
+        local_repo = getattr(args, "dinov2_local_dir", None)
+        if local_repo and os.path.isdir(local_repo):
+            print(f"Loading DINOv2 from local repo: {local_repo}")
+            self.vision_encoder = torch.hub.load(
+                local_repo,
+                args.backbone_name,
+                source='local'
+            )
+        else:
+            if local_repo:
+                print(f"Local DINOv2 repo not found at: {local_repo}, fallback to online torch.hub.")
+            self.vision_encoder = torch.hub.load(
+                'facebookresearch/dinov2',
+                args.backbone_name,
+            )
 
         self.hidden_dim = 384 #vits14
         self.d_scale = 14

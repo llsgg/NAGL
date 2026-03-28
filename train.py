@@ -74,6 +74,7 @@ if __name__ == '__main__':
     parser.add_argument('--port', type=str, default='1234', help='number of cpu threads to use during batch generation')
     
     parser.add_argument("--backbone_name", type=str, default='dinov2_vits14', help="the name of encoder")
+    parser.add_argument("--dinov2_local_dir", type=str, default="./dinov2", help="local dinov2 repo path, fallback to online when unavailable")
     parser.add_argument("--num_learnable_proxies", type=int, default=3, help="number of learnable queries")
     parser.add_argument("--n_shot", type=int, default=1, help="number of normal samples")
     parser.add_argument("--a_shot", type=int, default=1, help="number of abnormal samples")
@@ -92,6 +93,7 @@ if __name__ == '__main__':
 
     # Set seed
     setup_seed(args.seed)
+    os.makedirs(args.save_path, exist_ok=True)
     if os.path.exists(f'{args.save_path}/n_{args.n_shot}_a_{args.a_shot}_best.pth'):
         print(f"Results for N-Shot = {args.n_shot}, A-Shot = {args.a_shot} already exist. Skipping.")
         exit()
