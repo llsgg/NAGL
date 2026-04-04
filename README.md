@@ -98,7 +98,6 @@ CUDA_VISIBLE_DEVICES=0 python test.py \
 ### (Optional)
 After dataset preparation, you can also run the code in one-step:
 ```bash
-sh run.sh train 0 ./outputs/train_on_visa 0 mvtec # mode, gpu_ids, ckpt_save_dir, fold, test_dataset
 ```
 or
 ```bash
