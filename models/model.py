@@ -76,6 +76,23 @@ class NAGL(nn.Module):
         self.focal_loss = FocalLoss()
         self.dice_loss = DiceLoss()
 
+        # ---------- Cross-episode anomaly proxy memory ----------
+        # Keep defaults here so old scripts still run.
+        self.enable_proxy_memory = getattr(args, "enable_proxy_memory", False)
+        self.memory_size = int(getattr(args, "memory_size", 512))
+        self.memory_topk = int(getattr(args, "memory_topk", 8))
+        self.memory_momentum = float(getattr(args, "memory_momentum", 0.1))
+        self.memory_conf_thresh = float(getattr(args, "memory_conf_thresh", 0.6))
+        self.memory_dedup_thresh = float(getattr(args, "memory_dedup_thresh", 0.95))
+        self.memory_temperature = float(getattr(args, "memory_temperature", 0.07))
+        self.memory_alpha = float(getattr(args, "memory_alpha", 0.7))
+        self.memory_fuse_mode = getattr(args, "memory_fuse_mode", "dynamic")
+        self.memory_warmup_epoch = int(getattr(args, "memory_warmup_epoch", 0))
+
+        self.register_buffer("memory_a", torch.zeros(self.memory_size, self.hidden_dim))
+        self.register_buffer("memory_a_ptr", torch.zeros(1, dtype=torch.long))
+        self.register_buffer("memory_a_count", torch.zeros(1, dtype=torch.long))
+
     def attention_module(self):
         # 生成一组 cross-attention + self-attention，供 RM/AFL 复用
         cross_attention = CrossAttentionLayer(                                                                                                                                             
@@ -234,6 +251,99 @@ class NAGL(nn.Module):
         # 还原回 (b,num,h*w,c)
         res_feat = rearrange(res_feat, 'b (num h_w) c -> b num h_w c', b=b, num=num)
         return res_feat
+
+    def proxy_confidence(self, proxy_tokens, ref_feat):
+        """
+        proxy_tokens: (b, p, c)
+        ref_feat: (b, num, m, c)
+        return: (b, p) in [0, 1]
+        """
+        ref_feat = rearrange(F.normalize(ref_feat, dim=-1), 'b num m c -> b (num m) c')
+        proxy_tokens = F.normalize(proxy_tokens, dim=-1)
+        sim = torch.einsum('bpc,brc->bpr', proxy_tokens, ref_feat)
+        conf = (1 + sim.max(dim=-1)[0]) / 2
+        return conf.clamp(0.0, 1.0)
+
+    def retrieve_anomaly_memory(self, proxy_tokens):
+        """
+        proxy_tokens: (b, p, c)
+        returns:
+            mem_proxy: (b, p, c)
+            mem_conf: (b, p) in [0,1]
+        """
+        valid_count = int(self.memory_a_count.item())
+        if (not self.enable_proxy_memory) or valid_count == 0:
+            mem_proxy = torch.zeros_like(proxy_tokens)
+            mem_conf = torch.zeros(proxy_tokens.shape[:2], device=proxy_tokens.device, dtype=proxy_tokens.dtype)
+            return mem_proxy, mem_conf
+
+        memory = self.memory_a[:valid_count]
+        proxy_norm = F.normalize(proxy_tokens, dim=-1)
+        memory_norm = F.normalize(memory, dim=-1)
+        sim = torch.einsum('bpc,kc->bpk', proxy_norm, memory_norm)
+
+        topk = min(self.memory_topk, valid_count)
+        top_scores, top_indices = torch.topk(sim, k=topk, dim=-1)
+        weights = F.softmax(top_scores / self.memory_temperature, dim=-1)
+
+        selected_memory = memory[top_indices]  # (b, p, topk, c)
+        mem_proxy = (weights.unsqueeze(-1) * selected_memory).sum(dim=-2)
+        mem_conf = ((1 + top_scores[..., 0]) / 2).clamp(0.0, 1.0)
+        return mem_proxy, mem_conf
+
+    def fuse_anomaly_proxies(self, current_proxy, memory_proxy, current_conf, memory_conf):
+        """
+        current_proxy/memory_proxy: (b, p, c)
+        current_conf/memory_conf: (b, p)
+        """
+        if self.memory_fuse_mode == "fixed":
+            alpha = torch.full_like(current_conf, self.memory_alpha)
+        else:
+            alpha = current_conf / (current_conf + memory_conf + 1e-6)
+            alpha = alpha.clamp(0.1, 0.9)
+        fused_proxy = alpha.unsqueeze(-1) * current_proxy + (1 - alpha).unsqueeze(-1) * memory_proxy
+        return fused_proxy, alpha
+
+    @torch.no_grad()
+    def update_anomaly_memory(self, proxy_tokens, conf_scores, current_epoch=0):
+        """
+        proxy_tokens: (b, p, c)
+        conf_scores: (b, p)
+        """
+        if not self.enable_proxy_memory:
+            return
+        if current_epoch < self.memory_warmup_epoch:
+            return
+
+        token_list = proxy_tokens.reshape(-1, proxy_tokens.shape[-1]).detach()
+        conf_list = conf_scores.reshape(-1).detach()
+        valid_mask = conf_list > self.memory_conf_thresh
+        if valid_mask.sum() == 0:
+            return
+
+        token_list = F.normalize(token_list[valid_mask], dim=-1)
+        memory = self.memory_a
+        K = memory.shape[0]
+        ptr = int(self.memory_a_ptr.item())
+        count = int(self.memory_a_count.item())
+
+        for token in token_list:
+            if count > 0:
+                existing = F.normalize(memory[:count], dim=-1)
+                max_sim = torch.matmul(existing, token).max()
+                if max_sim > self.memory_dedup_thresh:
+                    continue
+
+            if count < K:
+                memory[count] = token
+                count += 1
+                ptr = count % K
+            else:
+                memory[ptr] = (1 - self.memory_momentum) * memory[ptr] + self.memory_momentum * token
+                ptr = (ptr + 1) % K
+
+        self.memory_a_ptr[0] = ptr
+        self.memory_a_count[0] = count
     
     def prepare_test_image(self, img, transform):
         # 推理时允许传路径字符串
@@ -301,7 +411,19 @@ class NAGL(nn.Module):
             # 在 query 侧计算相对正常模板的残差
             query_res_feat = self.get_res_feat(query_feat, support_n_feat)
             # 用 residual_proxies 作为查询，映射得到 anomaly_proxies
-            anomaly_proxies = self.attention_forward(self.afl_ca, self.afl_sa, residual_proxies, query_res_feat, query_feat, None).unsqueeze(1)
+            anomaly_proxies_cur = self.attention_forward(self.afl_ca, self.afl_sa, residual_proxies, query_res_feat, query_feat, None)
+
+            # Cross-episode memory retrieval + fusion
+            if self.enable_proxy_memory:
+                current_conf = self.proxy_confidence(anomaly_proxies_cur, query_res_feat)
+                memory_proxies, memory_conf = self.retrieve_anomaly_memory(anomaly_proxies_cur)
+                anomaly_proxies, _ = self.fuse_anomaly_proxies(anomaly_proxies_cur, memory_proxies, current_conf, memory_conf)
+                if self.training:
+                    current_epoch = int(getattr(args, "current_epoch", 0))
+                    self.update_anomaly_memory(anomaly_proxies_cur, current_conf, current_epoch)
+            else:
+                anomaly_proxies = anomaly_proxies_cur
+            anomaly_proxies = anomaly_proxies.unsqueeze(1)
             
             # query 与 anomaly_proxies 相似度（均值策略）=> 异常引导分数 s_a
             a_out, _ = self.nn_search(query_feat, anomaly_proxies, mode='mean')

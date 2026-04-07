@@ -34,6 +34,16 @@ def parse_args():
     
     parser.add_argument("--backbone_name", type=str, default='dinov2_vits14', help="the name of encoder")
     parser.add_argument("--num_learnable_proxies", type=int, default=25, help="number of learnable queries")
+    parser.add_argument("--enable_proxy_memory", action=argparse.BooleanOptionalAction, default=False, help="enable cross-episode anomaly proxy memory")
+    parser.add_argument("--memory_size", type=int, default=512, help="anomaly proxy memory capacity")
+    parser.add_argument("--memory_topk", type=int, default=8, help="top-k memory retrieval")
+    parser.add_argument("--memory_momentum", type=float, default=0.1, help="memory ema update momentum")
+    parser.add_argument("--memory_conf_thresh", type=float, default=0.6, help="confidence threshold to write memory")
+    parser.add_argument("--memory_dedup_thresh", type=float, default=0.95, help="deduplicate threshold in memory")
+    parser.add_argument("--memory_temperature", type=float, default=0.07, help="temperature for memory retrieval softmax")
+    parser.add_argument("--memory_alpha", type=float, default=0.7, help="fixed fusion alpha between current and memory proxies")
+    parser.add_argument("--memory_fuse_mode", type=str, default="dynamic", choices=["dynamic", "fixed"], help="proxy fusion mode")
+    parser.add_argument("--memory_warmup_epoch", type=int, default=0, help="epochs before memory writing starts")
     parser.add_argument("--n_shots", nargs='+', type=int, default=[1], #action=IntListAction,
                         help="List of shots to evaluate. Full-shot scenario is -1.")
     parser.add_argument("--a_shots", nargs='+', type=int, default=[1], #action=IntListAction,
