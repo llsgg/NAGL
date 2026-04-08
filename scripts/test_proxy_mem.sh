@@ -12,14 +12,18 @@ MEMORY_ALPHA=${MEMORY_ALPHA:-0.7}
 MEMORY_FUSE_MODE=${MEMORY_FUSE_MODE:-dynamic}
 MEMORY_WARMUP_EPOCH=${MEMORY_WARMUP_EPOCH:-2}
 TAG=${4:-proxy_mem}
+N_SHOTS_STR=${5:-${N_SHOTS:-"1 2 4"}}
+A_SHOTS_STR=${6:-${A_SHOTS:-"1"}}
+read -r -a N_SHOTS_ARR <<< "$N_SHOTS_STR"
+read -r -a A_SHOTS_ARR <<< "$A_SHOTS_STR"
 
 if [ "$3" == "mvtec" ]; then
     CUDA_VISIBLE_DEVICES=$1 "$PYTHON_BIN" test.py \
         --save_path $2 \
         --image_size 448 \
         --dataset MVTec \
-        --n_shots 1 2 4 \
-        --a_shots 1 \
+        --n_shots "${N_SHOTS_ARR[@]}" \
+        --a_shots "${A_SHOTS_ARR[@]}" \
         --num_learnable_proxies 25 \
         --enable_proxy_memory \
         --memory_size "$MEMORY_SIZE" \
@@ -40,8 +44,8 @@ elif [ "$3" == "visa" ]; then
         --save_path $2 \
         --image_size 448 \
         --dataset VisA \
-        --n_shots 1 2 4 \
-        --a_shots 1 \
+        --n_shots "${N_SHOTS_ARR[@]}" \
+        --a_shots "${A_SHOTS_ARR[@]}" \
         --num_learnable_proxies 25 \
         --enable_proxy_memory \
         --memory_size "$MEMORY_SIZE" \
@@ -62,8 +66,8 @@ elif [ "$3" == "btad" ]; then
         --save_path $2 \
         --image_size 448 \
         --dataset BTAD \
-        --n_shots 1 2 4 \
-        --a_shots 1 \
+        --n_shots "${N_SHOTS_ARR[@]}" \
+        --a_shots "${A_SHOTS_ARR[@]}" \
         --num_learnable_proxies 25 \
         --enable_proxy_memory \
         --memory_size "$MEMORY_SIZE" \
@@ -84,8 +88,8 @@ elif [ "$3" == "brats" ]; then
         --save_path $2 \
         --image_size 448 \
         --dataset BraTS \
-        --n_shots 1 2 4 \
-        --a_shots 1 \
+        --n_shots "${N_SHOTS_ARR[@]}" \
+        --a_shots "${A_SHOTS_ARR[@]}" \
         --num_learnable_proxies 25 \
         --enable_proxy_memory \
         --memory_size "$MEMORY_SIZE" \

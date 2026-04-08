@@ -1,8 +1,10 @@
 #!/bin/bash
 
-# Define arrays for n_shot and a_shot
-n_shot=(1 2 4)
-a_shot=(1)
+# Define arrays for n_shot and a_shot (overridable by env vars).
+N_SHOTS_STR=${N_SHOTS:-"1 2 4"}
+A_SHOTS_STR=${A_SHOTS:-"1"}
+read -r -a n_shot <<< "$N_SHOTS_STR"
+read -r -a a_shot <<< "$A_SHOTS_STR"
 
 # Get command line arguments
 gpu=$1
