@@ -1,0 +1,32 @@
+a_shot: 1
+a_shots:
+- 1
+backbone_name: dinov2_vits14
+data_root: /data2/zhangheyao/PromptAD-master/data/mvtec
+dataset: MVTec
+device: !!python/object/apply:torch.device
+- cuda
+- 0
+enable_proxy_memory: true
+eval_clf: true
+eval_segm: true
+image_size: 448
+just_seed: null
+local_rank: 0
+memory_alpha: 0.7
+memory_conf_thresh: 0.6
+memory_dedup_thresh: 0.95
+memory_fuse_mode: dynamic
+memory_momentum: 0.1
+memory_size: 512
+memory_temperature: 0.07
+memory_topk: 8
+memory_warmup_epoch: 2
+model_name: dinov2_vits14
+n_shot: 1
+n_shots:
+- 1
+num_learnable_proxies: 25
+num_seeds: 3
+save_path: ./outputs/train_proxy_mem_fold0_v3
+tag: proxy_mem_v3

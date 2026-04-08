@@ -1,0 +1,955 @@
+Namespace(data_root='/data2/zhangheyao/PromptAD-master/data', meta_root='./dataset/meta_json', data_mode='mvtec_visa', fold=0, save_path='./outputs/train_proxy_mem_fold0_v3', worker=4, local_rank=0, port='1234', backbone_name='dinov2_vits14', dinov2_local_dir='/data2/zhangheyao/AAA/NAGL/NAGL/dinov2', num_learnable_proxies=25, n_shot=2, a_shot=1, enable_proxy_memory=True, memory_size=512, memory_topk=8, memory_momentum=0.1, memory_conf_thresh=0.6, memory_dedup_thresh=0.95, memory_temperature=0.07, memory_alpha=0.7, memory_fuse_mode='dynamic', memory_warmup_epoch=2, epoch=20, learning_rate=1e-05, batch_size=8, image_size=448, print_freq=50, save_freq=1, seed=111)
+local_rank:  0
+Loading DINOv2 from local repo: /data2/zhangheyao/AAA/NAGL/NAGL/dinov2
+Trainable Parameters: 
+module.learnable_proxies.weight torch.Size([25, 384])
+module.rm_ca.multihead_attn.in_proj_weight torch.Size([1152, 384])
+module.rm_ca.multihead_attn.in_proj_bias torch.Size([1152])
+module.rm_ca.multihead_attn.out_proj.weight torch.Size([384, 384])
+module.rm_ca.multihead_attn.out_proj.bias torch.Size([384])
+module.rm_ca.norm.weight torch.Size([384])
+module.rm_ca.norm.bias torch.Size([384])
+module.rm_sa.self_attn.in_proj_weight torch.Size([1152, 384])
+module.rm_sa.self_attn.in_proj_bias torch.Size([1152])
+module.rm_sa.self_attn.out_proj.weight torch.Size([384, 384])
+module.rm_sa.self_attn.out_proj.bias torch.Size([384])
+module.rm_sa.norm.weight torch.Size([384])
+module.rm_sa.norm.bias torch.Size([384])
+module.afl_ca.multihead_attn.in_proj_weight torch.Size([1152, 384])
+module.afl_ca.multihead_attn.in_proj_bias torch.Size([1152])
+module.afl_ca.multihead_attn.out_proj.weight torch.Size([384, 384])
+module.afl_ca.multihead_attn.out_proj.bias torch.Size([384])
+module.afl_ca.norm.weight torch.Size([384])
+module.afl_ca.norm.bias torch.Size([384])
+module.afl_sa.self_attn.in_proj_weight torch.Size([1152, 384])
+module.afl_sa.self_attn.in_proj_bias torch.Size([1152])
+module.afl_sa.self_attn.out_proj.weight torch.Size([384, 384])
+module.afl_sa.self_attn.out_proj.bias torch.Size([384])
+module.afl_sa.norm.weight torch.Size([384])
+module.afl_sa.norm.bias torch.Size([384])
+Total params: 24.435M 
+Trainable params: 2.378 M 
+
+Train classes: ['candle', 'capsules', 'cashew', 'chewinggum', 'fryum', 'macaroni1', 'macaroni2', 'pcb1', 'pcb2', 'pcb3', 'pcb4', 'pipe_fryum']
+Val classes: ['bottle', 'cable', 'capsule', 'carpet', 'grid', 'hazelnut', 'leather', 'metal_nut', 'pill', 'screw', 'tile', 'toothbrush', 'transistor', 'wood', 'zipper'] 
+
+Epoch: 0, Learning Rate: 1e-05
+----------Train-----------
+Iter: 0 	 || Total Loss: 2.0852, I-Loss: 0.7457, P-Loss: 1.3395
+Iter: 50 	 || Total Loss: 2.0638, I-Loss: 0.6967, P-Loss: 1.3671
+Product              I-AUROC              P-AUROC             
+candle               0.9207               0.9935              
+capsules             0.8877               0.9234              
+cashew               0.9962               0.9911              
+chewinggum           0.9708               0.9930              
+fryum                0.9000               0.9119              
+macaroni1            0.7560               0.9229              
+macaroni2            0.5521               0.9012              
+pcb1                 0.6182               0.9947              
+pcb2                 0.7908               0.9742              
+pcb3                 0.8267               0.9672              
+pcb4                 0.8600               0.8993              
+pipe_fryum           0.8951               0.9919              
+Mean                 0.8312               0.9554              
+Train Results 	 || I-AUROC: 0.8312, P-AUROC: 0.9554, Loss: 2.0588
+--------Validation--------
+Iter: 0 	 || Total Loss: 2.0996, I-Loss: 0.7388, P-Loss: 1.3608
+Iter: 50 	 || Total Loss: 2.0258, I-Loss: 0.6747, P-Loss: 1.3512
+Iter: 100 	 || Total Loss: 2.0240, I-Loss: 0.6724, P-Loss: 1.3516
+Iter: 150 	 || Total Loss: 2.0299, I-Loss: 0.6789, P-Loss: 1.3510
+Iter: 200 	 || Total Loss: 2.0294, I-Loss: 0.6780, P-Loss: 1.3514
+Product              I-AUROC              P-AUROC             
+bottle               0.9988               0.9890              
+cable                0.8983               0.9493              
+capsule              0.8551               0.9860              
+carpet               1.0000               0.9943              
+grid                 0.9973               0.9919              
+hazelnut             0.9820               0.9971              
+leather              1.0000               0.9934              
+metal_nut            0.9996               0.9632              
+pill                 0.9308               0.9620              
+screw                0.6283               0.9766              
+tile                 0.9955               0.9644              
+toothbrush           0.9895               0.9945              
+transistor           0.9158               0.9162              
+wood                 0.9914               0.9861              
+zipper               0.9761               0.9795              
+Mean                 0.9439               0.9762              
+Val Results 	 || I-AUROC: 0.9439, P-AUROC: 0.9762, Loss: 2.0282
+
+Warmup Epoch 0 
+
+Epoch: 1, Learning Rate: 1e-05
+----------Train-----------
+Iter: 0 	 || Total Loss: 2.1197, I-Loss: 0.7639, P-Loss: 1.3558
+Iter: 50 	 || Total Loss: 2.0573, I-Loss: 0.7132, P-Loss: 1.3441
+Product              I-AUROC              P-AUROC             
+candle               0.9476               0.9891              
+capsules             0.8834               0.9577              
+cashew               0.9230               0.9954              
+chewinggum           1.0000               0.9977              
+fryum                0.9164               0.9679              
+macaroni1            0.8100               0.9886              
+macaroni2            0.5652               0.9784              
+pcb1                 0.7331               0.9937              
+pcb2                 0.8418               0.9888              
+pcb3                 0.7470               0.8590              
+pcb4                 0.8636               0.9426              
+pipe_fryum           0.9554               0.9890              
+Mean                 0.8489               0.9707              
+Train Results 	 || I-AUROC: 0.8489, P-AUROC: 0.9707, Loss: 2.0492
+--------Validation--------
+Iter: 0 	 || Total Loss: 1.9920, I-Loss: 0.6905, P-Loss: 1.3015
+Iter: 50 	 || Total Loss: 2.0232, I-Loss: 0.6853, P-Loss: 1.3379
+Iter: 100 	 || Total Loss: 2.0256, I-Loss: 0.6855, P-Loss: 1.3401
+Iter: 150 	 || Total Loss: 2.0253, I-Loss: 0.6841, P-Loss: 1.3412
+Iter: 200 	 || Total Loss: 2.0256, I-Loss: 0.6846, P-Loss: 1.3410
+Product              I-AUROC              P-AUROC             
+bottle               0.9985               0.9896              
+cable                0.9538               0.9657              
+capsule              0.8821               0.9856              
+carpet               0.9973               0.9945              
+grid                 0.9935               0.9915              
+hazelnut             0.9996               0.9961              
+leather              1.0000               0.9932              
+metal_nut            0.9969               0.9632              
+pill                 0.9647               0.9388              
+screw                0.7537               0.9811              
+tile                 0.9979               0.9756              
+toothbrush           0.9943               0.9921              
+transistor           0.9550               0.9020              
+wood                 0.9973               0.9631              
+zipper               0.9839               0.9794              
+Mean                 0.9646               0.9741              
+Val Results 	 || I-AUROC: 0.9646, P-AUROC: 0.9741, Loss: 2.0276
+
+Warmup Epoch 1 
+
+Epoch: 2, Learning Rate: 1e-05
+----------Train-----------
+Iter: 0 	 || Total Loss: 2.0763, I-Loss: 0.7434, P-Loss: 1.3329
+Iter: 50 	 || Total Loss: 2.0321, I-Loss: 0.7025, P-Loss: 1.3296
+Product              I-AUROC              P-AUROC             
+candle               0.9556               0.9948              
+capsules             0.9246               0.9862              
+cashew               0.9389               0.9951              
+chewinggum           0.9883               0.9848              
+fryum                0.9630               0.9702              
+macaroni1            0.7778               0.9879              
+macaroni2            0.6259               0.9917              
+pcb1                 0.8390               0.9899              
+pcb2                 0.8361               0.9516              
+pcb3                 0.7987               0.9430              
+pcb4                 0.9659               0.9611              
+pipe_fryum           0.9595               0.9925              
+Mean                 0.8811               0.9791              
+Train Results 	 || I-AUROC: 0.8811, P-AUROC: 0.9791, Loss: 2.0354
+--------Validation--------
+Iter: 0 	 || Total Loss: 1.9710, I-Loss: 0.6261, P-Loss: 1.3449
+Iter: 50 	 || Total Loss: 1.9985, I-Loss: 0.6649, P-Loss: 1.3336
+Iter: 100 	 || Total Loss: 2.0070, I-Loss: 0.6730, P-Loss: 1.3340
+Iter: 150 	 || Total Loss: 2.0121, I-Loss: 0.6785, P-Loss: 1.3336
+Iter: 200 	 || Total Loss: 2.0121, I-Loss: 0.6783, P-Loss: 1.3338
+Product              I-AUROC              P-AUROC             
+bottle               0.9992               0.9896              
+cable                0.9492               0.9766              
+capsule              0.8966               0.9899              
+carpet               1.0000               0.9952              
+grid                 1.0000               0.9932              
+hazelnut             0.9946               0.9970              
+leather              1.0000               0.9941              
+metal_nut            0.9927               0.9643              
+pill                 0.9583               0.9298              
+screw                0.7495               0.9734              
+tile                 0.9962               0.9827              
+toothbrush           0.9925               0.9947              
+transistor           0.8829               0.9042              
+wood                 1.0000               0.9950              
+zipper               0.9714               0.9860              
+Mean                 0.9589               0.9777              
+Val Results 	 || I-AUROC: 0.9589, P-AUROC: 0.9777, Loss: 2.0118
+
+Warmup Epoch 2 
+
+Epoch: 3, Learning Rate: 1e-05
+----------Train-----------
+Iter: 0 	 || Total Loss: 1.9745, I-Loss: 0.6467, P-Loss: 1.3278
+Iter: 50 	 || Total Loss: 2.0191, I-Loss: 0.7016, P-Loss: 1.3175
+Product              I-AUROC              P-AUROC             
+candle               0.9694               0.9971              
+capsules             0.9956               0.9697              
+cashew               0.9928               0.9952              
+chewinggum           0.9616               0.9965              
+fryum                0.9647               0.9617              
+macaroni1            0.7791               0.9898              
+macaroni2            0.7815               0.9965              
+pcb1                 0.8552               0.9929              
+pcb2                 0.8472               0.9938              
+pcb3                 0.8721               0.8935              
+pcb4                 0.9722               0.9705              
+pipe_fryum           0.9387               0.9912              
+Mean                 0.9108               0.9790              
+Train Results 	 || I-AUROC: 0.9108, P-AUROC: 0.9790, Loss: 2.0141
+--------Validation--------
+Iter: 0 	 || Total Loss: 1.9552, I-Loss: 0.6221, P-Loss: 1.3331
+Iter: 50 	 || Total Loss: 1.9898, I-Loss: 0.6545, P-Loss: 1.3353
+Iter: 100 	 || Total Loss: 2.0001, I-Loss: 0.6671, P-Loss: 1.3330
+Iter: 150 	 || Total Loss: 2.0015, I-Loss: 0.6700, P-Loss: 1.3315
+Iter: 200 	 || Total Loss: 2.0024, I-Loss: 0.6720, P-Loss: 1.3304
+Product              I-AUROC              P-AUROC             
+bottle               0.9937               0.9901              
+cable                0.9228               0.9606              
+capsule              0.8798               0.9834              
+carpet               1.0000               0.9964              
+grid                 1.0000               0.9948              
+hazelnut             0.9906               0.9959              
+leather              1.0000               0.9947              
+metal_nut            0.9960               0.9621              
+pill                 0.9763               0.9179              
+screw                0.7372               0.9822              
+tile                 0.9972               0.9759              
+toothbrush           0.9997               0.9939              
+transistor           0.9222               0.8891              
+wood                 0.9990               0.9940              
+zipper               0.9909               0.9851              
+Mean                 0.9604               0.9744              
+Val Results 	 || I-AUROC: 0.9604, P-AUROC: 0.9744, Loss: 2.0015
+
+Warmup Epoch 3 
+
+Epoch: 4, Learning Rate: 1e-05
+----------Train-----------
+Iter: 0 	 || Total Loss: 2.0560, I-Loss: 0.7627, P-Loss: 1.2934
+Iter: 50 	 || Total Loss: 2.0019, I-Loss: 0.6911, P-Loss: 1.3108
+Product              I-AUROC              P-AUROC             
+candle               0.9707               0.9832              
+capsules             0.9339               0.9910              
+cashew               0.9769               0.9944              
+chewinggum           0.9799               0.9945              
+fryum                0.9690               0.9676              
+macaroni1            0.7792               0.9950              
+macaroni2            0.7937               0.9964              
+pcb1                 0.8561               0.9893              
+pcb2                 0.9036               0.9560              
+pcb3                 0.8324               0.9363              
+pcb4                 0.9706               0.9576              
+pipe_fryum           0.9507               0.9882              
+Mean                 0.9097               0.9791              
+Train Results 	 || I-AUROC: 0.9097, P-AUROC: 0.9791, Loss: 2.0187
+--------Validation--------
+Iter: 0 	 || Total Loss: 1.9241, I-Loss: 0.5846, P-Loss: 1.3395
+Iter: 50 	 || Total Loss: 1.9903, I-Loss: 0.6645, P-Loss: 1.3258
+Iter: 100 	 || Total Loss: 1.9887, I-Loss: 0.6632, P-Loss: 1.3256
+Iter: 150 	 || Total Loss: 1.9909, I-Loss: 0.6645, P-Loss: 1.3264
+Iter: 200 	 || Total Loss: 1.9959, I-Loss: 0.6701, P-Loss: 1.3258
+Product              I-AUROC              P-AUROC             
+bottle               1.0000               0.9916              
+cable                0.9458               0.9630              
+capsule              0.8909               0.9860              
+carpet               1.0000               0.9956              
+grid                 0.9957               0.9945              
+hazelnut             1.0000               0.9976              
+leather              1.0000               0.9955              
+metal_nut            0.9998               0.9615              
+pill                 0.9608               0.9232              
+screw                0.7387               0.9744              
+tile                 0.9975               0.9795              
+toothbrush           0.9937               0.9944              
+transistor           0.9547               0.9064              
+wood                 0.9981               0.9698              
+zipper               0.9863               0.9843              
+Mean                 0.9641               0.9745              
+Val Results 	 || I-AUROC: 0.9641, P-AUROC: 0.9745, Loss: 1.9941
+
+Warmup Epoch 4 
+
+Epoch: 5, Learning Rate: 1e-05
+----------Train-----------
+Iter: 0 	 || Total Loss: 2.0165, I-Loss: 0.7044, P-Loss: 1.3121
+Iter: 50 	 || Total Loss: 2.0278, I-Loss: 0.7191, P-Loss: 1.3087
+Product              I-AUROC              P-AUROC             
+candle               0.8934               0.9891              
+capsules             0.9398               0.9791              
+cashew               0.8449               0.9962              
+chewinggum           0.9948               0.9970              
+fryum                0.9548               0.9607              
+macaroni1            0.8632               0.9939              
+macaroni2            0.6316               0.9938              
+pcb1                 0.8155               0.9894              
+pcb2                 0.8588               0.9714              
+pcb3                 0.8748               0.9612              
+pcb4                 0.9541               0.9481              
+pipe_fryum           0.9259               0.9933              
+Mean                 0.8793               0.9811              
+Train Results 	 || I-AUROC: 0.8793, P-AUROC: 0.9811, Loss: 2.0277
+--------Validation--------
+Iter: 0 	 || Total Loss: 1.9629, I-Loss: 0.6365, P-Loss: 1.3265
+Iter: 50 	 || Total Loss: 2.0098, I-Loss: 0.6877, P-Loss: 1.3221
+Iter: 100 	 || Total Loss: 2.0156, I-Loss: 0.6935, P-Loss: 1.3220
+Iter: 150 	 || Total Loss: 2.0154, I-Loss: 0.6940, P-Loss: 1.3213
+Iter: 200 	 || Total Loss: 2.0099, I-Loss: 0.6883, P-Loss: 1.3215
+Product              I-AUROC              P-AUROC             
+bottle               0.9930               0.9875              
+cable                0.9488               0.9613              
+capsule              0.9175               0.9881              
+carpet               0.9998               0.9960              
+grid                 1.0000               0.9933              
+hazelnut             0.9991               0.9974              
+leather              1.0000               0.9943              
+metal_nut            0.9950               0.9634              
+pill                 0.9447               0.9311              
+screw                0.7962               0.9807              
+tile                 0.9983               0.9806              
+toothbrush           0.9912               0.9951              
+transistor           0.8895               0.8747              
+wood                 0.9974               0.9939              
+zipper               0.9880               0.9852              
+Mean                 0.9639               0.9748              
+Val Results 	 || I-AUROC: 0.9639, P-AUROC: 0.9748, Loss: 2.0108
+
+Previous Best I-AUROC: 0.9639(5) || Best P-AUROC: 0.9748(5) 
+
+Epoch: 6, Learning Rate: 1e-05
+----------Train-----------
+Iter: 0 	 || Total Loss: 1.9077, I-Loss: 0.5976, P-Loss: 1.3101
+Iter: 50 	 || Total Loss: 1.9889, I-Loss: 0.6857, P-Loss: 1.3032
+Product              I-AUROC              P-AUROC             
+candle               0.9389               0.9984              
+capsules             0.9328               0.9802              
+cashew               0.9599               0.9948              
+chewinggum           0.9630               0.9846              
+fryum                0.9565               0.9771              
+macaroni1            0.9444               0.9982              
+macaroni2            0.8269               0.9956              
+pcb1                 0.7839               0.9962              
+pcb2                 0.8292               0.9864              
+pcb3                 0.7990               0.8880              
+pcb4                 0.9757               0.9680              
+pipe_fryum           0.9226               0.9926              
+Mean                 0.9027               0.9800              
+Train Results 	 || I-AUROC: 0.9027, P-AUROC: 0.9800, Loss: 1.9908
+--------Validation--------
+Iter: 0 	 || Total Loss: 2.0358, I-Loss: 0.7108, P-Loss: 1.3250
+Iter: 50 	 || Total Loss: 2.0213, I-Loss: 0.7030, P-Loss: 1.3184
+Iter: 100 	 || Total Loss: 2.0133, I-Loss: 0.6937, P-Loss: 1.3196
+Iter: 150 	 || Total Loss: 2.0061, I-Loss: 0.6857, P-Loss: 1.3203
+Iter: 200 	 || Total Loss: 2.0050, I-Loss: 0.6847, P-Loss: 1.3203
+Product              I-AUROC              P-AUROC             
+bottle               0.9894               0.9813              
+cable                0.9524               0.9659              
+capsule              0.9139               0.9815              
+carpet               1.0000               0.9948              
+grid                 0.9977               0.9956              
+hazelnut             0.9995               0.9968              
+leather              1.0000               0.9952              
+metal_nut            0.9956               0.9570              
+pill                 0.9471               0.9385              
+screw                0.6875               0.9786              
+tile                 0.9995               0.9766              
+toothbrush           0.9949               0.9932              
+transistor           0.9759               0.8810              
+wood                 0.9979               0.9934              
+zipper               0.9929               0.9867              
+Mean                 0.9629               0.9744              
+Val Results 	 || I-AUROC: 0.9629, P-AUROC: 0.9744, Loss: 2.0040
+
+Previous Best I-AUROC: 0.9639(5) || Best P-AUROC: 0.9748(5) 
+
+Epoch: 7, Learning Rate: 1e-05
+----------Train-----------
+Iter: 0 	 || Total Loss: 1.9364, I-Loss: 0.6302, P-Loss: 1.3063
+Iter: 50 	 || Total Loss: 2.0184, I-Loss: 0.7165, P-Loss: 1.3019
+Product              I-AUROC              P-AUROC             
+candle               0.8990               0.9931              
+capsules             0.8898               0.9921              
+cashew               0.9539               0.9945              
+chewinggum           1.0000               0.9973              
+fryum                0.9795               0.9750              
+macaroni1            0.9647               0.9979              
+macaroni2            0.6461               0.9950              
+pcb1                 0.6875               0.9831              
+pcb2                 0.8329               0.9405              
+pcb3                 0.8945               0.9855              
+pcb4                 0.9962               0.9630              
+pipe_fryum           0.9361               0.9860              
+Mean                 0.8900               0.9836              
+Train Results 	 || I-AUROC: 0.8900, P-AUROC: 0.9836, Loss: 2.0224
+--------Validation--------
+Iter: 0 	 || Total Loss: 1.9127, I-Loss: 0.5921, P-Loss: 1.3206
+Iter: 50 	 || Total Loss: 1.9757, I-Loss: 0.6535, P-Loss: 1.3222
+Iter: 100 	 || Total Loss: 1.9873, I-Loss: 0.6668, P-Loss: 1.3205
+Iter: 150 	 || Total Loss: 1.9957, I-Loss: 0.6764, P-Loss: 1.3193
+Iter: 200 	 || Total Loss: 1.9968, I-Loss: 0.6784, P-Loss: 1.3184
+Product              I-AUROC              P-AUROC             
+bottle               0.9984               0.9851              
+cable                0.9558               0.9681              
+capsule              0.8908               0.9793              
+carpet               1.0000               0.9973              
+grid                 1.0000               0.9945              
+hazelnut             0.9988               0.9970              
+leather              1.0000               0.9936              
+metal_nut            0.9932               0.9521              
+pill                 0.9345               0.9194              
+screw                0.8021               0.9778              
+tile                 0.9973               0.9756              
+toothbrush           0.9972               0.9942              
+transistor           0.9439               0.8818              
+wood                 1.0000               0.9789              
+zipper               0.9988               0.9901              
+Mean                 0.9674               0.9723              
+Val Results 	 || I-AUROC: 0.9674, P-AUROC: 0.9723, Loss: 1.9970
+
+Previous Best I-AUROC: 0.9674(7) || Best P-AUROC: 0.9723(7) 
+
+Epoch: 8, Learning Rate: 1e-05
+----------Train-----------
+Iter: 0 	 || Total Loss: 1.8924, I-Loss: 0.5870, P-Loss: 1.3055
+Iter: 50 	 || Total Loss: 1.9847, I-Loss: 0.6816, P-Loss: 1.3030
+Product              I-AUROC              P-AUROC             
+candle               0.9669               0.9898              
+capsules             0.9518               0.9591              
+cashew               0.9336               0.9919              
+chewinggum           0.9687               0.9873              
+fryum                0.9766               0.9720              
+macaroni1            0.9589               0.9917              
+macaroni2            0.6957               0.9960              
+pcb1                 0.9080               0.8759              
+pcb2                 0.8533               0.9690              
+pcb3                 0.8696               0.9793              
+pcb4                 0.8917               0.9531              
+pipe_fryum           0.9414               0.9907              
+Mean                 0.9097               0.9713              
+Train Results 	 || I-AUROC: 0.9097, P-AUROC: 0.9713, Loss: 1.9920
+--------Validation--------
+Iter: 0 	 || Total Loss: 1.9447, I-Loss: 0.6614, P-Loss: 1.2834
+Iter: 50 	 || Total Loss: 1.9926, I-Loss: 0.6758, P-Loss: 1.3168
+Iter: 100 	 || Total Loss: 1.9934, I-Loss: 0.6769, P-Loss: 1.3165
+Iter: 150 	 || Total Loss: 1.9920, I-Loss: 0.6760, P-Loss: 1.3160
+Iter: 200 	 || Total Loss: 1.9919, I-Loss: 0.6746, P-Loss: 1.3173
+Product              I-AUROC              P-AUROC             
+bottle               1.0000               0.9875              
+cable                0.9563               0.9565              
+capsule              0.8393               0.9832              
+carpet               1.0000               0.9958              
+grid                 1.0000               0.9952              
+hazelnut             1.0000               0.9970              
+leather              1.0000               0.9953              
+metal_nut            0.9897               0.9580              
+pill                 0.9629               0.9079              
+screw                0.7455               0.9694              
+tile                 0.9993               0.9714              
+toothbrush           0.9973               0.9945              
+transistor           0.9123               0.8685              
+wood                 0.9996               0.9934              
+zipper               0.9939               0.9899              
+Mean                 0.9597               0.9709              
+Val Results 	 || I-AUROC: 0.9597, P-AUROC: 0.9709, Loss: 1.9923
+
+Previous Best I-AUROC: 0.9674(7) || Best P-AUROC: 0.9723(7) 
+
+Epoch: 9, Learning Rate: 1e-05
+----------Train-----------
+Iter: 0 	 || Total Loss: 2.0918, I-Loss: 0.7962, P-Loss: 1.2956
+Iter: 50 	 || Total Loss: 2.0193, I-Loss: 0.7192, P-Loss: 1.3002
+Product              I-AUROC              P-AUROC             
+candle               0.8713               0.9892              
+capsules             0.9183               0.9823              
+cashew               0.9529               0.9976              
+chewinggum           0.9206               0.9874              
+fryum                0.9628               0.9659              
+macaroni1            0.9289               0.9980              
+macaroni2            0.6782               0.9941              
+pcb1                 0.8804               0.9907              
+pcb2                 0.7639               0.9692              
+pcb3                 0.9290               0.9809              
+pcb4                 0.9722               0.9591              
+pipe_fryum           0.9649               0.9937              
+Mean                 0.8953               0.9840              
+Train Results 	 || I-AUROC: 0.8953, P-AUROC: 0.9840, Loss: 2.0192
+--------Validation--------
+Iter: 0 	 || Total Loss: 1.8890, I-Loss: 0.5527, P-Loss: 1.3363
+Iter: 50 	 || Total Loss: 1.9867, I-Loss: 0.6677, P-Loss: 1.3190
+Iter: 100 	 || Total Loss: 1.9836, I-Loss: 0.6653, P-Loss: 1.3183
+Iter: 150 	 || Total Loss: 1.9894, I-Loss: 0.6710, P-Loss: 1.3184
+Iter: 200 	 || Total Loss: 1.9908, I-Loss: 0.6716, P-Loss: 1.3193
+Product              I-AUROC              P-AUROC             
+bottle               0.9978               0.9863              
+cable                0.9240               0.9465              
+capsule              0.9339               0.9837              
+carpet               1.0000               0.9959              
+grid                 1.0000               0.9956              
+hazelnut             0.9940               0.9969              
+leather              1.0000               0.9939              
+metal_nut            0.9997               0.9565              
+pill                 0.9427               0.9236              
+screw                0.7460               0.9818              
+tile                 1.0000               0.9870              
+toothbrush           0.9944               0.9944              
+transistor           0.9529               0.8595              
+wood                 0.9977               0.9922              
+zipper               0.9985               0.9895              
+Mean                 0.9654               0.9722              
+Val Results 	 || I-AUROC: 0.9654, P-AUROC: 0.9722, Loss: 1.9907
+
+Previous Best I-AUROC: 0.9674(7) || Best P-AUROC: 0.9723(7) 
+
+Epoch: 10, Learning Rate: 1.0000000000000002e-06
+----------Train-----------
+Iter: 0 	 || Total Loss: 2.1765, I-Loss: 0.8772, P-Loss: 1.2993
+Iter: 50 	 || Total Loss: 1.9882, I-Loss: 0.6894, P-Loss: 1.2988
+Product              I-AUROC              P-AUROC             
+candle               0.9452               0.9931              
+capsules             0.9950               0.9740              
+cashew               0.9323               0.9983              
+chewinggum           0.9786               0.9931              
+fryum                0.9841               0.9676              
+macaroni1            0.9403               0.9973              
+macaroni2            0.7403               0.9945              
+pcb1                 0.7777               0.9922              
+pcb2                 0.7895               0.9822              
+pcb3                 0.8889               0.9083              
+pcb4                 0.9306               0.9522              
+pipe_fryum           0.9307               0.9947              
+Mean                 0.9028               0.9789              
+Train Results 	 || I-AUROC: 0.9028, P-AUROC: 0.9789, Loss: 1.9789
+--------Validation--------
+Iter: 0 	 || Total Loss: 2.0062, I-Loss: 0.6877, P-Loss: 1.3185
+Iter: 50 	 || Total Loss: 1.9925, I-Loss: 0.6729, P-Loss: 1.3196
+Iter: 100 	 || Total Loss: 1.9930, I-Loss: 0.6732, P-Loss: 1.3198
+Iter: 150 	 || Total Loss: 1.9954, I-Loss: 0.6763, P-Loss: 1.3191
+Iter: 200 	 || Total Loss: 1.9932, I-Loss: 0.6748, P-Loss: 1.3184
+Product              I-AUROC              P-AUROC             
+bottle               0.9929               0.9782              
+cable                0.9358               0.9714              
+capsule              0.8770               0.9838              
+carpet               1.0000               0.9955              
+grid                 0.9998               0.9944              
+hazelnut             0.9990               0.9969              
+leather              1.0000               0.9955              
+metal_nut            0.9923               0.9492              
+pill                 0.9862               0.9279              
+screw                0.7805               0.9833              
+tile                 0.9967               0.9769              
+toothbrush           0.9954               0.9940              
+transistor           0.9258               0.8866              
+wood                 0.9995               0.9941              
+zipper               0.9934               0.9892              
+Mean                 0.9650               0.9745              
+Val Results 	 || I-AUROC: 0.9650, P-AUROC: 0.9745, Loss: 1.9930
+
+Previous Best I-AUROC: 0.9674(7) || Best P-AUROC: 0.9723(7) 
+
+Epoch: 11, Learning Rate: 1.0000000000000002e-06
+----------Train-----------
+Iter: 0 	 || Total Loss: 2.0335, I-Loss: 0.7500, P-Loss: 1.2836
+Iter: 50 	 || Total Loss: 1.9910, I-Loss: 0.6933, P-Loss: 1.2977
+Product              I-AUROC              P-AUROC             
+candle               0.9448               0.9930              
+capsules             0.9432               0.9858              
+cashew               0.9774               0.9956              
+chewinggum           0.9560               0.9959              
+fryum                0.9400               0.9725              
+macaroni1            0.8938               0.9927              
+macaroni2            0.8565               0.9959              
+pcb1                 0.7912               0.9804              
+pcb2                 0.8778               0.9569              
+pcb3                 0.8698               0.8578              
+pcb4                 0.9144               0.9570              
+pipe_fryum           0.9744               0.9926              
+Mean                 0.9116               0.9730              
+Train Results 	 || I-AUROC: 0.9116, P-AUROC: 0.9730, Loss: 1.9924
+--------Validation--------
+Iter: 0 	 || Total Loss: 1.9853, I-Loss: 0.6778, P-Loss: 1.3075
+Iter: 50 	 || Total Loss: 1.9870, I-Loss: 0.6660, P-Loss: 1.3209
+Iter: 100 	 || Total Loss: 1.9953, I-Loss: 0.6771, P-Loss: 1.3182
+Iter: 150 	 || Total Loss: 1.9895, I-Loss: 0.6712, P-Loss: 1.3183
+Iter: 200 	 || Total Loss: 1.9887, I-Loss: 0.6699, P-Loss: 1.3188
+Product              I-AUROC              P-AUROC             
+bottle               0.9947               0.9816              
+cable                0.9251               0.9509              
+capsule              0.9322               0.9900              
+carpet               0.9973               0.9963              
+grid                 0.9998               0.9955              
+hazelnut             0.9960               0.9974              
+leather              1.0000               0.9942              
+metal_nut            0.9899               0.9596              
+pill                 0.9685               0.8973              
+screw                0.7980               0.9860              
+tile                 0.9992               0.9706              
+toothbrush           0.9966               0.9951              
+transistor           0.9278               0.8286              
+wood                 0.9978               0.9761              
+zipper               0.9947               0.9891              
+Mean                 0.9678               0.9672              
+Val Results 	 || I-AUROC: 0.9678, P-AUROC: 0.9672, Loss: 1.9899
+
+Previous Best I-AUROC: 0.9674(7) || Best P-AUROC: 0.9723(7) 
+
+Epoch: 12, Learning Rate: 1.0000000000000002e-06
+----------Train-----------
+Iter: 0 	 || Total Loss: 1.9025, I-Loss: 0.5997, P-Loss: 1.3027
+Iter: 50 	 || Total Loss: 1.9999, I-Loss: 0.7010, P-Loss: 1.2989
+Product              I-AUROC              P-AUROC             
+candle               0.8854               0.9912              
+capsules             0.9091               0.9780              
+cashew               0.9485               0.9956              
+chewinggum           0.9491               0.9814              
+fryum                0.9539               0.9760              
+macaroni1            0.9388               0.9938              
+macaroni2            0.8464               0.9962              
+pcb1                 0.8822               0.9871              
+pcb2                 0.9141               0.8486              
+pcb3                 0.8709               0.9867              
+pcb4                 0.9668               0.9812              
+pipe_fryum           0.9028               0.9960              
+Mean                 0.9140               0.9760              
+Train Results 	 || I-AUROC: 0.9140, P-AUROC: 0.9760, Loss: 1.9983
+--------Validation--------
+Iter: 0 	 || Total Loss: 2.0218, I-Loss: 0.7611, P-Loss: 1.2607
+Iter: 50 	 || Total Loss: 1.9794, I-Loss: 0.6636, P-Loss: 1.3158
+Iter: 100 	 || Total Loss: 1.9895, I-Loss: 0.6738, P-Loss: 1.3157
+Iter: 150 	 || Total Loss: 1.9883, I-Loss: 0.6715, P-Loss: 1.3168
+Iter: 200 	 || Total Loss: 1.9927, I-Loss: 0.6768, P-Loss: 1.3159
+Product              I-AUROC              P-AUROC             
+bottle               0.9922               0.9824              
+cable                0.9331               0.9484              
+capsule              0.9501               0.9769              
+carpet               1.0000               0.9958              
+grid                 0.9980               0.9963              
+hazelnut             0.9998               0.9973              
+leather              1.0000               0.9947              
+metal_nut            0.9904               0.9560              
+pill                 0.9273               0.9308              
+screw                0.7523               0.9863              
+tile                 0.9998               0.9776              
+toothbrush           0.9962               0.9953              
+transistor           0.9410               0.8633              
+wood                 0.9963               0.9547              
+zipper               0.9970               0.9894              
+Mean                 0.9649               0.9697              
+Val Results 	 || I-AUROC: 0.9649, P-AUROC: 0.9697, Loss: 1.9927
+
+Previous Best I-AUROC: 0.9674(7) || Best P-AUROC: 0.9723(7) 
+
+Epoch: 13, Learning Rate: 1.0000000000000002e-06
+----------Train-----------
+Iter: 0 	 || Total Loss: 1.9028, I-Loss: 0.5981, P-Loss: 1.3046
+Iter: 50 	 || Total Loss: 1.9928, I-Loss: 0.6962, P-Loss: 1.2966
+Product              I-AUROC              P-AUROC             
+candle               0.9743               0.9937              
+capsules             0.9690               0.9926              
+cashew               0.9623               0.9995              
+chewinggum           0.9594               0.9905              
+fryum                0.9545               0.9713              
+macaroni1            0.8359               0.9976              
+macaroni2            0.8911               0.9945              
+pcb1                 0.9141               0.9910              
+pcb2                 0.8478               0.9653              
+pcb3                 0.8373               0.9667              
+pcb4                 0.9815               0.9622              
+pipe_fryum           0.9760               0.9861              
+Mean                 0.9253               0.9842              
+Train Results 	 || I-AUROC: 0.9253, P-AUROC: 0.9842, Loss: 1.9887
+--------Validation--------
+Iter: 0 	 || Total Loss: 1.9774, I-Loss: 0.6392, P-Loss: 1.3382
+Iter: 50 	 || Total Loss: 1.9904, I-Loss: 0.6720, P-Loss: 1.3183
+Iter: 100 	 || Total Loss: 1.9858, I-Loss: 0.6684, P-Loss: 1.3173
+Iter: 150 	 || Total Loss: 1.9907, I-Loss: 0.6725, P-Loss: 1.3182
+Iter: 200 	 || Total Loss: 1.9930, I-Loss: 0.6760, P-Loss: 1.3170
+Product              I-AUROC              P-AUROC             
+bottle               0.9943               0.9870              
+cable                0.9527               0.9675              
+capsule              0.9276               0.9803              
+carpet               0.9983               0.9948              
+grid                 0.9994               0.9955              
+hazelnut             0.9967               0.9965              
+leather              1.0000               0.9948              
+metal_nut            0.9989               0.9541              
+pill                 0.9683               0.9410              
+screw                0.7682               0.9846              
+tile                 0.9987               0.9835              
+toothbrush           0.9986               0.9945              
+transistor           0.9512               0.8720              
+wood                 0.9998               0.9744              
+zipper               0.9994               0.9906              
+Mean                 0.9701               0.9741              
+Val Results 	 || I-AUROC: 0.9701, P-AUROC: 0.9741, Loss: 1.9939
+
+Previous Best I-AUROC: 0.9701(13) || Best P-AUROC: 0.9741(13) 
+
+Epoch: 14, Learning Rate: 1.0000000000000002e-06
+----------Train-----------
+Iter: 0 	 || Total Loss: 1.9393, I-Loss: 0.6552, P-Loss: 1.2841
+Iter: 50 	 || Total Loss: 2.0077, I-Loss: 0.7116, P-Loss: 1.2961
+Product              I-AUROC              P-AUROC             
+candle               0.9772               0.9920              
+capsules             0.9359               0.9665              
+cashew               0.9273               0.9787              
+chewinggum           0.9743               0.9960              
+fryum                0.9443               0.9677              
+macaroni1            0.9432               0.9949              
+macaroni2            0.7378               0.9942              
+pcb1                 0.8298               0.9506              
+pcb2                 0.9669               0.9913              
+pcb3                 0.9109               0.9071              
+pcb4                 0.9447               0.9441              
+pipe_fryum           0.9613               0.9905              
+Mean                 0.9211               0.9728              
+Train Results 	 || I-AUROC: 0.9211, P-AUROC: 0.9728, Loss: 2.0131
+--------Validation--------
+Iter: 0 	 || Total Loss: 1.9577, I-Loss: 0.6258, P-Loss: 1.3320
+Iter: 50 	 || Total Loss: 1.9891, I-Loss: 0.6735, P-Loss: 1.3157
+Iter: 100 	 || Total Loss: 1.9936, I-Loss: 0.6765, P-Loss: 1.3172
+Iter: 150 	 || Total Loss: 1.9930, I-Loss: 0.6752, P-Loss: 1.3178
+Iter: 200 	 || Total Loss: 1.9931, I-Loss: 0.6761, P-Loss: 1.3170
+Product              I-AUROC              P-AUROC             
+bottle               0.9984               0.9857              
+cable                0.9446               0.9552              
+capsule              0.8912               0.9860              
+carpet               1.0000               0.9962              
+grid                 1.0000               0.9961              
+hazelnut             0.9873               0.9966              
+leather              1.0000               0.9968              
+metal_nut            0.9896               0.9555              
+pill                 0.9593               0.9100              
+screw                0.7928               0.9867              
+tile                 0.9960               0.9798              
+toothbrush           0.9985               0.9942              
+transistor           0.9524               0.8869              
+wood                 0.9979               0.9889              
+zipper               0.9919               0.9906              
+Mean                 0.9667               0.9737              
+Val Results 	 || I-AUROC: 0.9667, P-AUROC: 0.9737, Loss: 1.9951
+
+Previous Best I-AUROC: 0.9701(13) || Best P-AUROC: 0.9741(13) 
+
+Epoch: 15, Learning Rate: 1.0000000000000002e-07
+----------Train-----------
+Iter: 0 	 || Total Loss: 1.9872, I-Loss: 0.6900, P-Loss: 1.2972
+Iter: 50 	 || Total Loss: 1.9904, I-Loss: 0.6925, P-Loss: 1.2980
+Product              I-AUROC              P-AUROC             
+candle               0.9688               0.9942              
+capsules             0.9545               0.9884              
+cashew               0.9848               0.9839              
+chewinggum           0.9815               0.9955              
+fryum                0.9975               0.9810              
+macaroni1            0.8547               0.9941              
+macaroni2            0.7762               0.9946              
+pcb1                 0.8208               0.9769              
+pcb2                 0.8745               0.9858              
+pcb3                 0.8571               0.9408              
+pcb4                 0.9500               0.9733              
+pipe_fryum           0.9127               0.9960              
+Mean                 0.9111               0.9837              
+Train Results 	 || I-AUROC: 0.9111, P-AUROC: 0.9837, Loss: 1.9935
+--------Validation--------
+Iter: 0 	 || Total Loss: 2.0746, I-Loss: 0.7478, P-Loss: 1.3267
+Iter: 50 	 || Total Loss: 1.9894, I-Loss: 0.6680, P-Loss: 1.3214
+Iter: 100 	 || Total Loss: 1.9861, I-Loss: 0.6679, P-Loss: 1.3182
+Iter: 150 	 || Total Loss: 1.9889, I-Loss: 0.6708, P-Loss: 1.3181
+Iter: 200 	 || Total Loss: 1.9920, I-Loss: 0.6736, P-Loss: 1.3183
+Product              I-AUROC              P-AUROC             
+bottle               0.9959               0.9918              
+cable                0.9651               0.9634              
+capsule              0.8886               0.9823              
+carpet               0.9993               0.9963              
+grid                 1.0000               0.9966              
+hazelnut             0.9950               0.9961              
+leather              1.0000               0.9948              
+metal_nut            0.9902               0.9543              
+pill                 0.9684               0.9016              
+screw                0.7351               0.9780              
+tile                 1.0000               0.9523              
+toothbrush           0.9957               0.9960              
+transistor           0.9378               0.8768              
+wood                 0.9972               0.9894              
+zipper               0.9908               0.9886              
+Mean                 0.9639               0.9706              
+Val Results 	 || I-AUROC: 0.9639, P-AUROC: 0.9706, Loss: 1.9919
+
+Previous Best I-AUROC: 0.9701(13) || Best P-AUROC: 0.9741(13) 
+
+Epoch: 16, Learning Rate: 1.0000000000000002e-07
+----------Train-----------
+Iter: 0 	 || Total Loss: 1.9303, I-Loss: 0.6347, P-Loss: 1.2956
+Iter: 50 	 || Total Loss: 2.0152, I-Loss: 0.7171, P-Loss: 1.2981
+Product              I-AUROC              P-AUROC             
+candle               0.9407               0.9870              
+capsules             0.9123               0.9654              
+cashew               0.9812               0.9787              
+chewinggum           0.9702               0.9852              
+fryum                0.9737               0.9689              
+macaroni1            0.8718               0.9898              
+macaroni2            0.7181               0.9944              
+pcb1                 0.8798               0.9849              
+pcb2                 0.9474               0.9669              
+pcb3                 0.8795               0.9159              
+pcb4                 0.9465               0.9589              
+pipe_fryum           0.9188               0.9907              
+Mean                 0.9117               0.9739              
+Train Results 	 || I-AUROC: 0.9117, P-AUROC: 0.9739, Loss: 2.0085
+--------Validation--------
+Iter: 0 	 || Total Loss: 2.0436, I-Loss: 0.7522, P-Loss: 1.2914
+Iter: 50 	 || Total Loss: 2.0036, I-Loss: 0.6871, P-Loss: 1.3166
+Iter: 100 	 || Total Loss: 2.0054, I-Loss: 0.6879, P-Loss: 1.3176
+Iter: 150 	 || Total Loss: 1.9984, I-Loss: 0.6804, P-Loss: 1.3180
+Iter: 200 	 || Total Loss: 1.9967, I-Loss: 0.6791, P-Loss: 1.3176
+Product              I-AUROC              P-AUROC             
+bottle               0.9917               0.9850              
+cable                0.9503               0.9721              
+capsule              0.9340               0.9809              
+carpet               1.0000               0.9951              
+grid                 0.9988               0.9958              
+hazelnut             0.9987               0.9964              
+leather              1.0000               0.9933              
+metal_nut            0.9890               0.9510              
+pill                 0.9517               0.9277              
+screw                0.7591               0.9847              
+tile                 0.9992               0.9820              
+toothbrush           0.9929               0.9950              
+transistor           0.9452               0.8523              
+wood                 1.0000               0.9958              
+zipper               0.9976               0.9892              
+Mean                 0.9672               0.9731              
+Val Results 	 || I-AUROC: 0.9672, P-AUROC: 0.9731, Loss: 1.9969
+
+Previous Best I-AUROC: 0.9701(13) || Best P-AUROC: 0.9741(13) 
+
+Epoch: 17, Learning Rate: 1.0000000000000002e-07
+----------Train-----------
+Iter: 0 	 || Total Loss: 2.0068, I-Loss: 0.7040, P-Loss: 1.3029
+Iter: 50 	 || Total Loss: 2.0236, I-Loss: 0.7256, P-Loss: 1.2980
+Product              I-AUROC              P-AUROC             
+candle               0.9030               0.9842              
+capsules             0.9339               0.9710              
+cashew               0.9847               0.9961              
+chewinggum           1.0000               0.9957              
+fryum                0.9960               0.9739              
+macaroni1            0.9375               0.9978              
+macaroni2            0.8075               0.9958              
+pcb1                 0.8657               0.9822              
+pcb2                 0.9097               0.9232              
+pcb3                 0.8391               0.9034              
+pcb4                 0.9801               0.9711              
+pipe_fryum           0.9517               0.9939              
+Mean                 0.9257               0.9740              
+Train Results 	 || I-AUROC: 0.9257, P-AUROC: 0.9740, Loss: 2.0187
+--------Validation--------
+Iter: 0 	 || Total Loss: 2.0145, I-Loss: 0.7462, P-Loss: 1.2684
+Iter: 50 	 || Total Loss: 1.9847, I-Loss: 0.6710, P-Loss: 1.3137
+Iter: 100 	 || Total Loss: 1.9957, I-Loss: 0.6801, P-Loss: 1.3155
+Iter: 150 	 || Total Loss: 1.9943, I-Loss: 0.6782, P-Loss: 1.3161
+Iter: 200 	 || Total Loss: 1.9930, I-Loss: 0.6754, P-Loss: 1.3176
+Product              I-AUROC              P-AUROC             
+bottle               0.9844               0.9851              
+cable                0.9725               0.9676              
+capsule              0.9263               0.9832              
+carpet               1.0000               0.9955              
+grid                 1.0000               0.9952              
+hazelnut             0.9958               0.9968              
+leather              1.0000               0.9971              
+metal_nut            0.9842               0.9611              
+pill                 0.9461               0.9280              
+screw                0.7590               0.9759              
+tile                 0.9986               0.9794              
+toothbrush           0.9994               0.9965              
+transistor           0.9679               0.8611              
+wood                 0.9984               0.9941              
+zipper               0.9918               0.9886              
+Mean                 0.9683               0.9737              
+Val Results 	 || I-AUROC: 0.9683, P-AUROC: 0.9737, Loss: 1.9945
+
+Previous Best I-AUROC: 0.9701(13) || Best P-AUROC: 0.9741(13) 
+
+Epoch: 18, Learning Rate: 1.0000000000000002e-07
+----------Train-----------
+Iter: 0 	 || Total Loss: 2.0072, I-Loss: 0.7053, P-Loss: 1.3019
+Iter: 50 	 || Total Loss: 2.0088, I-Loss: 0.7093, P-Loss: 1.2995
+Product              I-AUROC              P-AUROC             
+candle               0.9420               0.9945              
+capsules             0.9779               0.9910              
+cashew               0.9377               0.9987              
+chewinggum           0.9869               0.9884              
+fryum                0.9352               0.9599              
+macaroni1            0.8750               0.9959              
+macaroni2            0.8274               0.9945              
+pcb1                 0.9242               0.9829              
+pcb2                 0.7751               0.9657              
+pcb3                 0.8793               0.8758              
+pcb4                 0.9855               0.9474              
+pipe_fryum           0.9284               0.9964              
+Mean                 0.9146               0.9743              
+Train Results 	 || I-AUROC: 0.9146, P-AUROC: 0.9743, Loss: 2.0164
+--------Validation--------
+Iter: 0 	 || Total Loss: 2.0190, I-Loss: 0.7128, P-Loss: 1.3062
+Iter: 50 	 || Total Loss: 1.9753, I-Loss: 0.6612, P-Loss: 1.3141
+Iter: 100 	 || Total Loss: 1.9843, I-Loss: 0.6675, P-Loss: 1.3169
+Iter: 150 	 || Total Loss: 1.9843, I-Loss: 0.6679, P-Loss: 1.3164
+Iter: 200 	 || Total Loss: 1.9856, I-Loss: 0.6684, P-Loss: 1.3173
+Product              I-AUROC              P-AUROC             
+bottle               0.9954               0.9881              
+cable                0.9601               0.9624              
+capsule              0.9061               0.9851              
+carpet               1.0000               0.9957              
+grid                 0.9998               0.9948              
+hazelnut             0.9984               0.9970              
+leather              1.0000               0.9947              
+metal_nut            0.9941               0.9557              
+pill                 0.9606               0.9577              
+screw                0.7521               0.9806              
+tile                 1.0000               0.9661              
+toothbrush           0.9996               0.9953              
+transistor           0.9329               0.8824              
+wood                 0.9979               0.9723              
+zipper               0.9947               0.9889              
+Mean                 0.9661               0.9744              
+Val Results 	 || I-AUROC: 0.9661, P-AUROC: 0.9744, Loss: 1.9862
+
+Previous Best I-AUROC: 0.9701(13) || Best P-AUROC: 0.9741(13) 
+
+Epoch: 19, Learning Rate: 1.0000000000000002e-07
+----------Train-----------
+Iter: 0 	 || Total Loss: 2.0441, I-Loss: 0.7616, P-Loss: 1.2825
+Iter: 50 	 || Total Loss: 2.0138, I-Loss: 0.7155, P-Loss: 1.2982
+Product              I-AUROC              P-AUROC             
+candle               0.8900               0.9872              
+capsules             0.9506               0.9984              
+cashew               0.9780               0.9996              
+chewinggum           0.9982               0.9960              
+fryum                0.9524               0.9733              
+macaroni1            0.9280               0.9966              
+macaroni2            0.7262               0.9964              
+pcb1                 0.8904               0.9897              
+pcb2                 0.7551               0.9793              
+pcb3                 0.9575               0.9695              
+pcb4                 0.9939               0.9632              
+pipe_fryum           0.9455               0.9932              
+Mean                 0.9138               0.9869              
+Train Results 	 || I-AUROC: 0.9138, P-AUROC: 0.9869, Loss: 2.0141
+--------Validation--------
+Iter: 0 	 || Total Loss: 1.9686, I-Loss: 0.6760, P-Loss: 1.2926
+Iter: 50 	 || Total Loss: 1.9837, I-Loss: 0.6679, P-Loss: 1.3158
+Iter: 100 	 || Total Loss: 1.9866, I-Loss: 0.6673, P-Loss: 1.3193
+Iter: 150 	 || Total Loss: 1.9904, I-Loss: 0.6720, P-Loss: 1.3184
+Iter: 200 	 || Total Loss: 1.9924, I-Loss: 0.6751, P-Loss: 1.3173
+Product              I-AUROC              P-AUROC             
+bottle               0.9973               0.9866              
+cable                0.9363               0.9545              
+capsule              0.9438               0.9890              
+carpet               0.9998               0.9940              
+grid                 1.0000               0.9955              
+hazelnut             0.9888               0.9966              
+leather              1.0000               0.9952              
+metal_nut            0.9879               0.9570              
+pill                 0.9778               0.9160              
+screw                0.7772               0.9815              
+tile                 0.9970               0.9671              
+toothbrush           1.0000               0.9947              
+transistor           0.9513               0.8620              
+wood                 0.9981               0.9723              
+zipper               0.9884               0.9881              
+Mean                 0.9696               0.9700              
+Val Results 	 || I-AUROC: 0.9696, P-AUROC: 0.9700, Loss: 1.9955
+
+Previous Best I-AUROC: 0.9701(13) || Best P-AUROC: 0.9741(13) 
+
