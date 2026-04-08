@@ -1,0 +1,128 @@
+{
+    "bottle": {
+        "seg_AUPRO": 0.9563052726792737,
+        "seg_AUROC": 0.9830156188033864,
+        "seg_F1": 0.7621267399786934,
+        "classification_AUROC": 0.996031746031746,
+        "classification_AP": 0.9987192514695127,
+        "classification_F1": 0.9921259842514685
+    },
+    "cable": {
+        "seg_AUPRO": 0.880142054005767,
+        "seg_AUROC": 0.9517400034552067,
+        "seg_F1": 0.5893731958903236,
+        "classification_AUROC": 0.9280359820089954,
+        "classification_AP": 0.9616532767628582,
+        "classification_F1": 0.9042553191484363
+    },
+    "capsule": {
+        "seg_AUPRO": 0.9691549509706395,
+        "seg_AUROC": 0.9824797470425156,
+        "seg_F1": 0.508386313078217,
+        "classification_AUROC": 0.9405664140406861,
+        "classification_AP": 0.9875085868419328,
+        "classification_F1": 0.9374999999995003
+    },
+    "carpet": {
+        "seg_AUPRO": 0.9842093373338745,
+        "seg_AUROC": 0.9931875229433906,
+        "seg_F1": 0.6833528698781235,
+        "classification_AUROC": 1.0,
+        "classification_AP": 1.0,
+        "classification_F1": 0.9999999999995
+    },
+    "grid": {
+        "seg_AUPRO": 0.9685293269286699,
+        "seg_AUROC": 0.992353533761048,
+        "seg_F1": 0.4849533387824161,
+        "classification_AUROC": 0.9991645781119465,
+        "classification_AP": 0.9996975196612223,
+        "classification_F1": 0.9913043478255869
+    },
+    "hazelnut": {
+        "seg_AUPRO": 0.9696841371180086,
+        "seg_AUROC": 0.9961507049920106,
+        "seg_F1": 0.8228328919170049,
+        "classification_AUROC": 0.9953571428571428,
+        "classification_AP": 0.9974590585988645,
+        "classification_F1": 0.9784172661865503
+    },
+    "leather": {
+        "seg_AUPRO": 0.9872501129270073,
+        "seg_AUROC": 0.9925086402172009,
+        "seg_F1": 0.4522676829512486,
+        "classification_AUROC": 1.0,
+        "classification_AP": 1.0000000000000002,
+        "classification_F1": 0.9999999999995
+    },
+    "metal_nut": {
+        "seg_AUPRO": 0.9178405040979609,
+        "seg_AUROC": 0.937624462478398,
+        "seg_F1": 0.6287348904819192,
+        "classification_AUROC": 0.9912023460410557,
+        "classification_AP": 0.9980280947923179,
+        "classification_F1": 0.978494623655414
+    },
+    "pill": {
+        "seg_AUPRO": 0.9621072110731107,
+        "seg_AUROC": 0.9360628292899039,
+        "seg_F1": 0.5144385882958881,
+        "classification_AUROC": 0.944899072558647,
+        "classification_AP": 0.9885020236933528,
+        "classification_F1": 0.9679715302486102
+    },
+    "screw": {
+        "seg_AUPRO": 0.916740972215242,
+        "seg_AUROC": 0.9748057372455924,
+        "seg_F1": 0.40552548978433794,
+        "classification_AUROC": 0.8003689280590285,
+        "classification_AP": 0.9267056837004684,
+        "classification_F1": 0.885496183205611
+    },
+    "tile": {
+        "seg_AUPRO": 0.9066248059697568,
+        "seg_AUROC": 0.9619765249200346,
+        "seg_F1": 0.6829587971531959,
+        "classification_AUROC": 0.9790764790764791,
+        "classification_AP": 0.9921550644776086,
+        "classification_F1": 0.9534883720925235
+    },
+    "toothbrush": {
+        "seg_AUPRO": 0.9521825745058919,
+        "seg_AUROC": 0.9914247186527446,
+        "seg_F1": 0.6525170920084788,
+        "classification_AUROC": 0.9777777777777777,
+        "classification_AP": 0.9925825825825826,
+        "classification_F1": 0.9666666666661666
+    },
+    "transistor": {
+        "seg_AUPRO": 0.6429500105883089,
+        "seg_AUROC": 0.8500281054999347,
+        "seg_F1": 0.44593995706780076,
+        "classification_AUROC": 0.9233333333333333,
+        "classification_AP": 0.903506438837169,
+        "classification_F1": 0.8192771084332355
+    },
+    "wood": {
+        "seg_AUPRO": 0.9683661485899691,
+        "seg_AUROC": 0.9717434757858512,
+        "seg_F1": 0.6754334592238621,
+        "classification_AUROC": 0.9973684210526315,
+        "classification_AP": 0.9992063492063493,
+        "classification_F1": 0.9915966386549621
+    },
+    "zipper": {
+        "seg_AUPRO": 0.9417837270011709,
+        "seg_AUROC": 0.9802399930915116,
+        "seg_F1": 0.5408287633688897,
+        "classification_AUROC": 0.9766281512605042,
+        "classification_AP": 0.993928697596018,
+        "classification_F1": 0.9535864978897953
+    },
+    "mean_au_pro": 0.9282580764003102,
+    "mean_segmentation_au_roc": 0.966356107878582,
+    "mean_segmentation_f1": 0.58997800465736,
+    "mean_classification_au_roc": 0.9633206914806649,
+    "mean_classification_ap": 0.9826435085480173,
+    "mean_classification_f1": 0.9546787025504572
+}

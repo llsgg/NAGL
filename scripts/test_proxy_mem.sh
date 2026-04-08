@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # Proxy-memory configs can be overridden by env vars to match training.
+PYTHON_BIN=${PYTHON_BIN:-python}
 MEMORY_SIZE=${MEMORY_SIZE:-512}
 MEMORY_TOPK=${MEMORY_TOPK:-8}
 MEMORY_MOMENTUM=${MEMORY_MOMENTUM:-0.1}
@@ -12,7 +13,7 @@ MEMORY_FUSE_MODE=${MEMORY_FUSE_MODE:-dynamic}
 MEMORY_WARMUP_EPOCH=${MEMORY_WARMUP_EPOCH:-2}
 
 if [ "$3" == "mvtec" ]; then
-    CUDA_VISIBLE_DEVICES=$1 python3 test.py \
+    CUDA_VISIBLE_DEVICES=$1 "$PYTHON_BIN" test.py \
         --save_path $2 \
         --image_size 448 \
         --dataset MVTec \
@@ -34,7 +35,7 @@ if [ "$3" == "mvtec" ]; then
         --tag proxy_mem \
         --data_root /data2/zhangheyao/PromptAD-master/data/mvtec
 elif [ "$3" == "visa" ]; then
-    CUDA_VISIBLE_DEVICES=$1 python3 test.py \
+    CUDA_VISIBLE_DEVICES=$1 "$PYTHON_BIN" test.py \
         --save_path $2 \
         --image_size 448 \
         --dataset VisA \
@@ -56,7 +57,7 @@ elif [ "$3" == "visa" ]; then
         --tag proxy_mem \
         --data_root /data2/zhangheyao/PromptAD-master/data/visa
 elif [ "$3" == "btad" ]; then
-    CUDA_VISIBLE_DEVICES=$1 python3 test.py \
+    CUDA_VISIBLE_DEVICES=$1 "$PYTHON_BIN" test.py \
         --save_path $2 \
         --image_size 448 \
         --dataset BTAD \
@@ -78,7 +79,7 @@ elif [ "$3" == "btad" ]; then
         --tag proxy_mem \
         --data_root /data2/zhangheyao/PromptAD-master/data/btad
 elif [ "$3" == "brats" ]; then
-    CUDA_VISIBLE_DEVICES=$1 python3 test.py \
+    CUDA_VISIBLE_DEVICES=$1 "$PYTHON_BIN" test.py \
         --save_path $2 \
         --image_size 448 \
         --dataset BraTS \
