@@ -258,7 +258,7 @@ if __name__ == '__main__':
         print(f'Train Results \t || I-AUROC: {mean_i_roc:.4f}, P-AUROC: {mean_p_roc:.4f}, Loss: {mean_loss:.4f}')
         # save the last checkpoint
         # 保存当前 epoch 的“最后权重”（仅保存可训练参数）
-        torch.save({name: param for name, param in model.named_parameters() if param.requires_grad}, f'{args.save_path}/n_{args.n_shot}_a_{args.a_shot}_last.pth')
+        torch.save(model.state_dict(), f'{args.save_path}/n_{args.n_shot}_a_{args.a_shot}_last.pth')
 
         # 验证阶段不需要梯度，减少显存与计算开销
         with torch.no_grad():
@@ -278,7 +278,7 @@ if __name__ == '__main__':
                 best_roc = best_i_roc + best_p_roc
                 # save the best model
                 # 保存当前最优权重（仅保存可训练参数）
-                torch.save({name: param for name, param in model.named_parameters() if param.requires_grad}, f'{args.save_path}/n_{args.n_shot}_a_{args.a_shot}_best.pth')
+                torch.save(model.state_dict(), f'{args.save_path}/n_{args.n_shot}_a_{args.a_shot}_best.pth')
             
             if epoch < 5:
                 print(f'Warmup Epoch {epoch} \n')

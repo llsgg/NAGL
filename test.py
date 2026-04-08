@@ -92,15 +92,17 @@ if __name__=="__main__":
             if a_shot>0:
                 ckpt = torch.load(f'{args.save_path}/n_{n_shot}_a_{a_shot}_best.pth')
                 print(f"Loading checkpoint from {args.save_path}/n_{n_shot}_a_{a_shot}_best.pth")
+                # Support both old partial checkpoints and new full state_dict checkpoints.
+                model_state = model.state_dict()
+                loaded_count = 0
                 for name, param in ckpt.items():
-                    if 'module' in name:
-                        name = name[7:]
-                    # set the model parameters by name
-                    if name in model.state_dict().keys():
-                        model.state_dict()[name].copy_(param)
-                        print(f"Loaded {name} from checkpoint.")
+                    clean_name = name[7:] if name.startswith("module.") else name
+                    if clean_name in model_state:
+                        model_state[clean_name].copy_(param)
+                        loaded_count += 1
                     else:
-                        print(f"Warning: {name} not in model state_dict.")
+                        print(f"Warning: {clean_name} not in model state_dict.")
+                print(f"Loaded {loaded_count} tensors from checkpoint.")
             model.eval()
 
             results_dir_suffix = f"{n_shot}-n_shot_{a_shot}-a_shot"

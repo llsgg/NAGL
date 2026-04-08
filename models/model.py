@@ -275,7 +275,7 @@ class NAGL(nn.Module):
         if (not self.enable_proxy_memory) or valid_count == 0:
             mem_proxy = torch.zeros_like(proxy_tokens)
             mem_conf = torch.zeros(proxy_tokens.shape[:2], device=proxy_tokens.device, dtype=proxy_tokens.dtype)
-            return mem_proxy, mem_conf
+            return mem_proxy, mem_conf, False
 
         memory = self.memory_a[:valid_count]
         proxy_norm = F.normalize(proxy_tokens, dim=-1)
@@ -289,7 +289,7 @@ class NAGL(nn.Module):
         selected_memory = memory[top_indices]  # (b, p, topk, c)
         mem_proxy = (weights.unsqueeze(-1) * selected_memory).sum(dim=-2)
         mem_conf = ((1 + top_scores[..., 0]) / 2).clamp(0.0, 1.0)
-        return mem_proxy, mem_conf
+        return mem_proxy, mem_conf, True
 
     def fuse_anomaly_proxies(self, current_proxy, memory_proxy, current_conf, memory_conf):
         """
@@ -416,8 +416,12 @@ class NAGL(nn.Module):
             # Cross-episode memory retrieval + fusion
             if self.enable_proxy_memory:
                 current_conf = self.proxy_confidence(anomaly_proxies_cur, query_res_feat)
-                memory_proxies, memory_conf = self.retrieve_anomaly_memory(anomaly_proxies_cur)
-                anomaly_proxies, _ = self.fuse_anomaly_proxies(anomaly_proxies_cur, memory_proxies, current_conf, memory_conf)
+                memory_proxies, memory_conf, has_memory = self.retrieve_anomaly_memory(anomaly_proxies_cur)
+                if has_memory:
+                    anomaly_proxies, _ = self.fuse_anomaly_proxies(anomaly_proxies_cur, memory_proxies, current_conf, memory_conf)
+                else:
+                    # Bypass fusion when memory is empty to avoid shrinking current proxies.
+                    anomaly_proxies = anomaly_proxies_cur
                 if self.training:
                     current_epoch = int(getattr(args, "current_epoch", 0))
                     self.update_anomaly_memory(anomaly_proxies_cur, current_conf, current_epoch)
