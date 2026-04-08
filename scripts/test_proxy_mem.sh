@@ -11,6 +11,7 @@ MEMORY_TEMPERATURE=${MEMORY_TEMPERATURE:-0.07}
 MEMORY_ALPHA=${MEMORY_ALPHA:-0.7}
 MEMORY_FUSE_MODE=${MEMORY_FUSE_MODE:-dynamic}
 MEMORY_WARMUP_EPOCH=${MEMORY_WARMUP_EPOCH:-2}
+TAG=${4:-proxy_mem}
 
 if [ "$3" == "mvtec" ]; then
     CUDA_VISIBLE_DEVICES=$1 "$PYTHON_BIN" test.py \
@@ -32,7 +33,7 @@ if [ "$3" == "mvtec" ]; then
         --memory_warmup_epoch "$MEMORY_WARMUP_EPOCH" \
         --num_seeds 3 \
         --eval_segm \
-        --tag proxy_mem \
+        --tag "$TAG" \
         --data_root /data2/zhangheyao/PromptAD-master/data/mvtec
 elif [ "$3" == "visa" ]; then
     CUDA_VISIBLE_DEVICES=$1 "$PYTHON_BIN" test.py \
@@ -54,7 +55,7 @@ elif [ "$3" == "visa" ]; then
         --memory_warmup_epoch "$MEMORY_WARMUP_EPOCH" \
         --num_seeds 3 \
         --eval_segm \
-        --tag proxy_mem \
+        --tag "$TAG" \
         --data_root /data2/zhangheyao/PromptAD-master/data/visa
 elif [ "$3" == "btad" ]; then
     CUDA_VISIBLE_DEVICES=$1 "$PYTHON_BIN" test.py \
@@ -76,7 +77,7 @@ elif [ "$3" == "btad" ]; then
         --memory_warmup_epoch "$MEMORY_WARMUP_EPOCH" \
         --num_seeds 3 \
         --eval_segm \
-        --tag proxy_mem \
+        --tag "$TAG" \
         --data_root /data2/zhangheyao/PromptAD-master/data/btad
 elif [ "$3" == "brats" ]; then
     CUDA_VISIBLE_DEVICES=$1 "$PYTHON_BIN" test.py \
@@ -98,6 +99,6 @@ elif [ "$3" == "brats" ]; then
         --memory_warmup_epoch "$MEMORY_WARMUP_EPOCH" \
         --num_seeds 3 \
         --eval_segm \
-        --tag proxy_mem \
+        --tag "$TAG" \
         --data_root /data2/zhangheyao/PromptAD-master/data/brats
 fi
