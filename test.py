@@ -38,6 +38,8 @@ def parse_args():
                         help="List of shots to evaluate. Full-shot scenario is -1.")
     parser.add_argument("--a_shots", nargs='+', type=int, default=[1], #action=IntListAction,
                         help="List of shots to evaluate. Full-shot scenario is -1.")
+    parser.add_argument("--num_refine_rounds", type=int, default=3, help="number of AFL iterative refinement rounds")
+    parser.add_argument("--refine_temperature", type=float, default=5.0, help="temperature for soft spatial mask in AFL refinement")
 
     parser.add_argument("--num_seeds", type=int, default=1)
     parser.add_argument("--just_seed", type=int, default=None)

@@ -66,8 +66,29 @@ class NAGL(nn.Module):
         self.learnable_proxies = nn.Embedding(args.num_learnable_proxies, self.hidden_dim)
         # RM：Residual Mining 模块的 cross/self attention
         self.rm_ca, self.rm_sa = self.attention_module() # RM Module
-        # AFL：Anomaly Feature Learning 模块的 cross/self attention
-        self.afl_ca, self.afl_sa = self.attention_module() # AFL Module
+        # AFL：Anomaly Feature Learning 模块，采用多轮迭代精炼机制
+        # 迭代轮数（默认 3），每轮用上一轮的 s_a 作为空间先验引导 cross-attention
+        self.num_refine_rounds = getattr(args, 'num_refine_rounds', 3)
+        # soft mask 温度：控制 sigmoid 的陡峭程度，越大越接近 hard mask
+        self.refine_temperature = getattr(args, 'refine_temperature', 5.0)
+        # 共享 CA：各轮读取相同的 query 残差特征，共享参数以减少开销
+        self.afl_ca = CrossAttentionLayer(
+            d_model=self.hidden_dim,
+            nhead=self.nheads,
+            dropout=0.0,
+            normalize_before=self.pre_norm,
+        )
+        # 独立 SA：各轮聚焦区域不同，proxy 间交互模式也不同，故每轮独立参数
+        self.afl_sa_list = nn.ModuleList([
+            SelfAttentionLayer(
+                d_model=self.hidden_dim,
+                nhead=self.nheads,
+                dropout=0.0,
+                normalize_before=self.pre_norm,
+            ) for _ in range(self.num_refine_rounds)
+        ])
+        # 各轮输出的可学习融合权重（softmax 后加权求和），让模型自主决定各轮贡献
+        self.round_weight_logits = nn.Parameter(torch.zeros(self.num_refine_rounds))
         # 2D 正弦位置编码（给 attention 的 key/value 提供位置信息）
         self.pe_layer = PositionEmbeddingSine(self.hidden_dim//2, normalize=True)
 
@@ -161,19 +182,19 @@ class NAGL(nn.Module):
         # 返回 query 的伪分数图 + 下采样后的 support mask（供后续模块复用）
         return pseudo_mask, support_mask_
 
-    def attention_forward(self, cross_layer, self_layer, query_embed, key_feat, value_feat, feat_mask=None):
+    def attention_forward(self, cross_layer, self_layer, query_embed, key_feat, value_feat, feat_mask=None, attn_bias=None):
         '''
         query_embed: (num_q, c)
         key_feat: (b, num_s, M, c)
         value_feat: (b, num_s, M, c)
         feat_mask: (b, num_s, M, 1)
+        attn_bias: 可选的 additive attention bias，用于迭代精炼时的空间引导
+                   形状 (nheads*B, num_q, source_len)，在 softmax 前叠加到 attn_mask
         '''
         # B 为 batch，C 为通道维
         B, _, _, C = value_feat.shape
 
         if isinstance(query_embed, nn.Embedding):
-            # gaussian init
-            # nn.init.normal_(query_embed.weight, mean=0, std=0.02)
             # learnable embedding 形状 (num_q,c) -> (num_q,B,c)
             q_supp_out = query_embed.weight.unsqueeze(1).repeat(1, B, 1)
         elif query_embed.dim() == 2:
@@ -196,6 +217,13 @@ class NAGL(nn.Module):
             attn_mask = -1e9*(1-attn_mask)
         else:
             attn_mask = feat_mask
+
+        # 叠加迭代精炼的空间引导 bias（log-space additive，与 MultiheadAttention 语义一致）
+        if attn_bias is not None:
+            if attn_mask is None:
+                attn_mask = attn_bias
+            else:
+                attn_mask = attn_mask + attn_bias
 
         # 先 cross-attention：query 从 key/value 中读取信息
         output = cross_layer(q_supp_out, key, value, 
@@ -297,15 +325,46 @@ class NAGL(nn.Module):
             # learnable proxies 从残差中聚合，得到 residual_proxies
             residual_proxies = self.attention_forward(self.rm_ca, self.rm_sa, self.learnable_proxies, support_a_feat, support_res_feat, support_a_mask)
 
-            # AFL Module forward
+            # AFL Module forward — 多轮迭代精炼
             # 在 query 侧计算相对正常模板的残差
             query_res_feat = self.get_res_feat(query_feat, support_n_feat)
-            # 用 residual_proxies 作为查询，映射得到 anomaly_proxies
-            anomaly_proxies = self.attention_forward(self.afl_ca, self.afl_sa, residual_proxies, query_res_feat, query_feat, None).unsqueeze(1)
-            
-            # query 与 anomaly_proxies 相似度（均值策略）=> 异常引导分数 s_a
-            a_out, _ = self.nn_search(query_feat, anomaly_proxies, mode='mean')
-            s_a = a_out.squeeze(-1)
+
+            # 上一轮的异常分数图（Round 0 为 None，无空间先验）
+            prev_s_a = None
+            # 收集每轮的异常分数图，用于最终加权融合和 deep supervision
+            s_a_rounds = []
+
+            for r in range(self.num_refine_rounds):
+                # 从 Round 1 开始，用上一轮的 s_a 构建空间引导 mask
+                if prev_s_a is not None:
+                    # 以均值为阈值，高于均值的区域（可疑异常）获得更高权重
+                    threshold = prev_s_a.mean(dim=-1, keepdim=True)
+                    # sigmoid 生成 soft mask，temperature 控制陡峭程度
+                    soft_mask = torch.sigmoid(self.refine_temperature * (prev_s_a - threshold))
+                    # 转换到 log 空间作为 additive bias（在 softmax 前叠加）
+                    # soft_mask 形状 (b,1,M)，repeat 扩展到 (nheads*b, num_proxy, M)
+                    ab = torch.log(soft_mask + 1e-6)
+                    ab = ab.repeat(self.nheads, residual_proxies.shape[1], 1)
+                else:
+                    ab = None
+
+                # 共享 CA + 第 r 轮独立 SA，生成 anomaly_proxies
+                anomaly_proxies = self.attention_forward(
+                    self.afl_ca, self.afl_sa_list[r],
+                    residual_proxies, query_res_feat, query_feat,
+                    attn_bias=ab
+                ).unsqueeze(1)
+
+                # query 与 anomaly_proxies 相似度（均值策略）=> 第 r 轮异常分数
+                a_out, _ = self.nn_search(query_feat, anomaly_proxies, mode='mean')
+                s_a_r = a_out.squeeze(-1)
+                s_a_rounds.append(s_a_r)
+                # detach 截断跨轮梯度流，避免训练不稳定
+                prev_s_a = s_a_r.detach()
+
+            # 可学习加权融合各轮输出，softmax 保证权重和为 1
+            round_weights = F.softmax(self.round_weight_logits, dim=0)
+            s_a = sum(w * s for w, s in zip(round_weights, s_a_rounds))
         
         # ---------- 处理缺失分支 ----------
         if args.n_shot>0 and args.a_shot==0:
@@ -329,22 +388,38 @@ class NAGL(nn.Module):
             a_score_topk = torch.topk(a_score, 20, dim=-1)[0].mean(dim=-1)
             # 构建二分类 logits：[normal_score, abnormal_score]
             image_level_logits = torch.cat([1-a_score_topk, a_score_topk], dim=-1)
-
-            # Image Level
-            # 图像级交叉熵损失
+            # 图像级交叉熵损失（仅在最终融合的 s_a 上计算，分类不需要精炼）
             loss_i += self.cross_entropy_loss(image_level_logits, query_label.long())
 
-            # Pixel Level
-            # token 序列还原到 2D 网格
-            l = int(pixel_level_logits.shape[-1]**0.5)
-            pixel_level_logits = rearrange(pixel_level_logits, 'b n (h w) -> b n h w', h=l)
-            # 上采样到 query_mask 原始分辨率
-            pixel_level_logits = F.interpolate(pixel_level_logits, size=query_mask.shape[-2:], mode='bilinear')
+            # 像素级损失 — Deep Supervision：每轮独立计算，确保各 SA 层均获得梯度
             # 把单通道 mask 变为双通道监督：[正常, 异常]
             query_mask_n = torch.stack([1-query_mask, query_mask], dim=1)
-            # 像素级损失：Focal + Dice
-            loss_p += self.focal_loss(pixel_level_logits, query_mask_n)
-            loss_p += self.dice_loss(pixel_level_logits, query_mask_n)
+
+            if args.a_shot > 0 and len(s_a_rounds) > 1:
+                # 各轮 loss 权重：前 N-1 轮为 1/N，最后一轮为 1.0，归一化总和=1
+                # 以 N=3 为例：归一化前 [1/3, 1/3, 1.0]，归一化后 [0.2, 0.2, 0.6]
+                raw_weights = [1.0 / self.num_refine_rounds] * (self.num_refine_rounds - 1) + [1.0]
+                total = sum(raw_weights)
+                round_loss_weights = [w / total for w in raw_weights]
+                for r, s_a_r in enumerate(s_a_rounds):
+                    # 拼接当前轮的 s_a_r 与 s_n 构成 2 通道 logits
+                    pl_r = torch.cat([s_n, s_a_r], dim=1)
+                    # token 序列还原到 2D 网格
+                    l = int(pl_r.shape[-1]**0.5)
+                    pl_r = rearrange(pl_r, 'b n (h w) -> b n h w', h=l)
+                    # 上采样到 query_mask 原始分辨率
+                    pl_r = F.interpolate(pl_r, size=query_mask.shape[-2:], mode='bilinear')
+                    # 加权累加 Focal + Dice 损失
+                    loss_p += round_loss_weights[r] * (self.focal_loss(pl_r, query_mask_n) + self.dice_loss(pl_r, query_mask_n))
+                # 最后一轮的 logits 作为返回值（用于指标统计）
+                pixel_level_logits = pl_r
+            else:
+                # 单轮或无异常参考时，退化为原始单次 loss 计算
+                l = int(pixel_level_logits.shape[-1]**0.5)
+                pixel_level_logits = rearrange(pixel_level_logits, 'b n (h w) -> b n h w', h=l)
+                pixel_level_logits = F.interpolate(pixel_level_logits, size=query_mask.shape[-2:], mode='bilinear')
+                loss_p += self.focal_loss(pixel_level_logits, query_mask_n)
+                loss_p += self.dice_loss(pixel_level_logits, query_mask_n)
 
             # 训练阶段返回 logits 与两项损失
             return image_level_logits, pixel_level_logits, loss_i, loss_p

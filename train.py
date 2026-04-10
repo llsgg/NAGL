@@ -106,6 +106,8 @@ if __name__ == '__main__':
     parser.add_argument("--num_learnable_proxies", type=int, default=3, help="number of learnable queries")
     parser.add_argument("--n_shot", type=int, default=1, help="number of normal samples")
     parser.add_argument("--a_shot", type=int, default=1, help="number of abnormal samples")
+    parser.add_argument("--num_refine_rounds", type=int, default=3, help="number of AFL iterative refinement rounds")
+    parser.add_argument("--refine_temperature", type=float, default=5.0, help="temperature for soft spatial mask in AFL refinement")
 
     # 训练超参数
     parser.add_argument("--epoch", type=int, default=10, help="epochs")
