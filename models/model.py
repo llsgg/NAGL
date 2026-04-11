@@ -366,6 +366,10 @@ class NAGL(nn.Module):
             round_weights = F.softmax(self.round_weight_logits, dim=0)
             s_a = sum(w * s for w, s in zip(round_weights, s_a_rounds))
         
+        # 保存覆写前的 s_n，供 deep supervision 使用
+        # （n_shot==0 时 s_n 会被覆写为 1-s_a，但 deep supervision 应使用原始伪 s_n）
+        s_n_pre = s_n if (args.a_shot > 0 and args.n_shot == 0) else None
+
         # ---------- 处理缺失分支 ----------
         if args.n_shot>0 and args.a_shot==0:
             # 只有正常参考时，用互补关系近似异常分数
@@ -394,6 +398,8 @@ class NAGL(nn.Module):
             # 像素级损失 — Deep Supervision：每轮独立计算，确保各 SA 层均获得梯度
             # 把单通道 mask 变为双通道监督：[正常, 异常]
             query_mask_n = torch.stack([1-query_mask, query_mask], dim=1)
+            # deep supervision 使用覆写前的 s_n，保持各轮 logits 语义一致
+            s_n_ds = s_n_pre if s_n_pre is not None else s_n
 
             if args.a_shot > 0 and len(s_a_rounds) > 1:
                 # 各轮 loss 权重：前 N-1 轮为 1/N，最后一轮为 1.0，归一化总和=1
@@ -402,8 +408,8 @@ class NAGL(nn.Module):
                 total = sum(raw_weights)
                 round_loss_weights = [w / total for w in raw_weights]
                 for r, s_a_r in enumerate(s_a_rounds):
-                    # 拼接当前轮的 s_a_r 与 s_n 构成 2 通道 logits
-                    pl_r = torch.cat([s_n, s_a_r], dim=1)
+                    # 拼接当前轮的 s_a_r 与 s_n_ds 构成 2 通道 logits
+                    pl_r = torch.cat([s_n_ds, s_a_r], dim=1)
                     # token 序列还原到 2D 网格
                     l = int(pl_r.shape[-1]**0.5)
                     pl_r = rearrange(pl_r, 'b n (h w) -> b n h w', h=l)
@@ -411,8 +417,11 @@ class NAGL(nn.Module):
                     pl_r = F.interpolate(pl_r, size=query_mask.shape[-2:], mode='bilinear')
                     # 加权累加 Focal + Dice 损失
                     loss_p += round_loss_weights[r] * (self.focal_loss(pl_r, query_mask_n) + self.dice_loss(pl_r, query_mask_n))
-                # 最后一轮的 logits 作为返回值（用于指标统计）
-                pixel_level_logits = pl_r
+                # 返回的 pixel_level_logits 基于融合后的 s_a，与测试路径语义一致
+                l = int(pixel_level_logits.shape[-1]**0.5)
+                pixel_level_logits = torch.cat([s_n, s_a], dim=1)
+                pixel_level_logits = rearrange(pixel_level_logits, 'b n (h w) -> b n h w', h=l)
+                pixel_level_logits = F.interpolate(pixel_level_logits, size=query_mask.shape[-2:], mode='bilinear')
             else:
                 # 单轮或无异常参考时，退化为原始单次 loss 计算
                 l = int(pixel_level_logits.shape[-1]**0.5)
