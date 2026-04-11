@@ -87,7 +87,9 @@ if __name__=="__main__":
                 for name, param in ckpt.items():
                     if 'module' in name:
                         name = name[7:]
-                    # set the model parameters by name
+                    # 旧 checkpoint 兼容：afl_sa -> afl_sa_list.0
+                    if name.startswith('afl_sa.'):
+                        name = name.replace('afl_sa.', 'afl_sa_list.0.', 1)
                     if name in model.state_dict().keys():
                         model.state_dict()[name].copy_(param)
                         print(f"Loaded {name} from checkpoint.")

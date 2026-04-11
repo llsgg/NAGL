@@ -325,10 +325,12 @@ class NAGL(nn.Module):
             # learnable proxies 从残差中聚合，得到 residual_proxies
             residual_proxies = self.attention_forward(self.rm_ca, self.rm_sa, self.learnable_proxies, support_a_feat, support_res_feat, support_a_mask)
 
-            # AFL Module forward — 多轮迭代精炼
+            # AFL Module forward — 多轮迭代精炼（query 迭代 + 空间引导）
             # 在 query 侧计算相对正常模板的残差
             query_res_feat = self.get_res_feat(query_feat, support_n_feat)
 
+            # 以 RM 输出的 residual_proxies 作为初始 query，逐轮精炼 proxy 表征
+            current_proxies = residual_proxies
             # 上一轮的异常分数图（Round 0 为 None，无空间先验）
             prev_s_a = None
             # 收集每轮的异常分数图，用于最终加权融合和 deep supervision
@@ -344,22 +346,23 @@ class NAGL(nn.Module):
                     # 转换到 log 空间作为 additive bias（在 softmax 前叠加）
                     # soft_mask 形状 (b,1,M)，repeat 扩展到 (nheads*b, num_proxy, M)
                     ab = torch.log(soft_mask + 1e-6)
-                    ab = ab.repeat(self.nheads, residual_proxies.shape[1], 1)
+                    ab = ab.repeat(self.nheads, current_proxies.shape[1], 1)
                 else:
                     ab = None
 
-                # 共享 CA + 第 r 轮独立 SA，生成 anomaly_proxies
-                anomaly_proxies = self.attention_forward(
+                # 共享 CA + 第 r 轮独立 SA
+                # 关键：用上一轮输出 current_proxies 作为本轮 query（proxy 逐轮精炼）
+                current_proxies = self.attention_forward(
                     self.afl_ca, self.afl_sa_list[r],
-                    residual_proxies, query_res_feat, query_feat,
+                    current_proxies, query_res_feat, query_feat,
                     attn_bias=ab
-                ).unsqueeze(1)
+                )
 
-                # query 与 anomaly_proxies 相似度（均值策略）=> 第 r 轮异常分数
-                a_out, _ = self.nn_search(query_feat, anomaly_proxies, mode='mean')
+                # query 与当前轮 anomaly_proxies 相似度（均值策略）=> 第 r 轮异常分数
+                a_out, _ = self.nn_search(query_feat, current_proxies.unsqueeze(1), mode='mean')
                 s_a_r = a_out.squeeze(-1)
                 s_a_rounds.append(s_a_r)
-                # detach 截断跨轮梯度流，避免训练不稳定
+                # detach 仅用于 mask 构建，不截断 query 迭代的梯度链
                 prev_s_a = s_a_r.detach()
 
             # 可学习加权融合各轮输出，softmax 保证权重和为 1
@@ -405,23 +408,25 @@ class NAGL(nn.Module):
                 # 各轮 loss 权重：前 N-1 轮为 1/N，最后一轮为 1.0，归一化总和=1
                 # 以 N=3 为例：归一化前 [1/3, 1/3, 1.0]，归一化后 [0.2, 0.2, 0.6]
                 raw_weights = [1.0 / self.num_refine_rounds] * (self.num_refine_rounds - 1) + [1.0]
-                total = sum(raw_weights)
-                round_loss_weights = [w / total for w in raw_weights]
+                wt = sum(raw_weights)
+                round_loss_weights = [w / wt for w in raw_weights]
+
+                # 像素级 loss 分两部分，各占 0.5，总量级与单轮 baseline 一致：
+                #   (1) deep supervision：各轮独立 loss，确保所有 SA 层获得梯度
+                #   (2) 融合输出 loss：确保 round_weight_logits 也从分割 loss 获得梯度
                 for r, s_a_r in enumerate(s_a_rounds):
-                    # 拼接当前轮的 s_a_r 与 s_n_ds 构成 2 通道 logits
                     pl_r = torch.cat([s_n_ds, s_a_r], dim=1)
-                    # token 序列还原到 2D 网格
                     l = int(pl_r.shape[-1]**0.5)
                     pl_r = rearrange(pl_r, 'b n (h w) -> b n h w', h=l)
-                    # 上采样到 query_mask 原始分辨率
                     pl_r = F.interpolate(pl_r, size=query_mask.shape[-2:], mode='bilinear')
-                    # 加权累加 Focal + Dice 损失
-                    loss_p += round_loss_weights[r] * (self.focal_loss(pl_r, query_mask_n) + self.dice_loss(pl_r, query_mask_n))
-                # 返回的 pixel_level_logits 基于融合后的 s_a，与测试路径语义一致
+                    loss_p += 0.5 * round_loss_weights[r] * (self.focal_loss(pl_r, query_mask_n) + self.dice_loss(pl_r, query_mask_n))
+
+                # 融合输出的像素级 loss（训练目标与推理目标对齐）
                 l = int(pixel_level_logits.shape[-1]**0.5)
                 pixel_level_logits = torch.cat([s_n, s_a], dim=1)
                 pixel_level_logits = rearrange(pixel_level_logits, 'b n (h w) -> b n h w', h=l)
                 pixel_level_logits = F.interpolate(pixel_level_logits, size=query_mask.shape[-2:], mode='bilinear')
+                loss_p += 0.5 * (self.focal_loss(pixel_level_logits, query_mask_n) + self.dice_loss(pixel_level_logits, query_mask_n))
             else:
                 # 单轮或无异常参考时，退化为原始单次 loss 计算
                 l = int(pixel_level_logits.shape[-1]**0.5)
